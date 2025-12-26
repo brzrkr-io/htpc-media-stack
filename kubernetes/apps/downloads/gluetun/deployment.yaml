@@ -60,7 +60,7 @@ spec:
               value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16" # Allow LAN
           ports:
             - containerPort: 9091
-              name: transmission-web
+              name: trans-web
               protocol: TCP
           volumeMounts:
             - name: gluetun-data
