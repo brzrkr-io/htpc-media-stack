@@ -45,12 +45,12 @@ spec:
                   key: OPENVPN_PASSWORD
             # ProtonVPN specific settings
             - name: SERVER_COUNTRIES
-              value: "United States" # Closest for best speeds
+              value: "United States"
             - name: FREE_ONLY
-              value: "false" # Set to "true" if using free tier
-            # P2P servers required for port forwarding
+              value: "false"
+            # P2P servers for port forwarding
             - name: PORT_FORWARD_ONLY
-              value: "true"
+              value: "false"
             # Port forwarding - required for torrent seeding/downloading
             - name: VPN_PORT_FORWARDING
               value: "on"
@@ -66,11 +66,13 @@ spec:
               value: "30s"
             - name: HEALTH_SUCCESS_WAIT_DURATION
               value: "10s"
-            # Firewall - allow LAN access
+            # Firewall - allow LAN and cluster access
             - name: FIREWALL_INPUT_PORTS
               value: "9091" # Transmission WebUI
             - name: FIREWALL_OUTBOUND_SUBNETS
               value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16" # Allow LAN
+            - name: FIREWALL_VPN_INPUT_PORTS
+              value: "9091"
           ports:
             - containerPort: 9091
               name: trans-web
@@ -127,9 +129,9 @@ spec:
             type: DirectoryOrCreate
         - name: downloads
           hostPath:
-            path: /data/media/downloads
+            path: /mnt/media-storage/downloads
             type: DirectoryOrCreate
         - name: media-library
           hostPath:
-            path: /data/media/library
+            path: /mnt/media-storage/library
             type: DirectoryOrCreate

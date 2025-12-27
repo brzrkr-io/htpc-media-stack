@@ -80,9 +80,9 @@ spec:
             type: DirectoryOrCreate
         - name: movies
           hostPath:
-            path: /data/media/library/movies
+            path: /mnt/media-storage/library/movies
             type: DirectoryOrCreate
         - name: tv
           hostPath:
-            path: /data/media/library/tv
+            path: /mnt/media-storage/library/tv
             type: DirectoryOrCreate

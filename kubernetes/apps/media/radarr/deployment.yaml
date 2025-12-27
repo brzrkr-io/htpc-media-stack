@@ -68,9 +68,9 @@ spec:
             type: DirectoryOrCreate
         - name: downloads
           hostPath:
-            path: /data/media/downloads
+            path: /mnt/media-storage/downloads
             type: DirectoryOrCreate
         - name: movies
           hostPath:
-            path: /data/media/library/movies
+            path: /mnt/media-storage/library/movies
             type: DirectoryOrCreate

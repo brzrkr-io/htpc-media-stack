@@ -19,6 +19,43 @@ spec:
       labels:
         app: sabnzbd
     spec:
+      initContainers:
+        - name: setup-config
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+            - |
+              # If sabnzbd.ini exists and has no [servers] section, append it
+              if [ -f /config/sabnzbd.ini ]; then
+                if ! grep -q "^\[servers\]" /config/sabnzbd.ini; then
+                  echo "" >> /config/sabnzbd.ini
+                  cat /server-config/servers.ini | \
+                    sed "s/\${NEWSHOSTING_USER}/$NEWSHOSTING_USER/g" | \
+                    sed "s/\${NEWSHOSTING_PASS}/$NEWSHOSTING_PASS/g" >> /config/sabnzbd.ini
+                  echo "Added server config to sabnzbd.ini"
+                else
+                  echo "Server config already exists"
+                fi
+              else
+                echo "sabnzbd.ini not found, will be created on first run"
+              fi
+          env:
+            - name: NEWSHOSTING_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sabnzbd-newshosting
+                  key: username
+            - name: NEWSHOSTING_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: sabnzbd-newshosting
+                  key: password
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: server-config
+              mountPath: /server-config
       containers:
         - name: sabnzbd
           image: lscr.io/linuxserver/sabnzbd:latest
@@ -28,7 +65,7 @@ spec:
             - name: PGID
               value: "1000"
             - name: TZ
-              value: "America/New_York"
+              value: "America/Chicago"
           ports:
             - containerPort: 8080
               name: http
@@ -66,9 +103,12 @@ spec:
             type: DirectoryOrCreate
         - name: downloads
           hostPath:
-            path: /data/media/downloads
+            path: /mnt/media-storage/downloads
             type: DirectoryOrCreate
         - name: media-library
           hostPath:
-            path: /data/media/library
+            path: /mnt/media-storage/library
             type: DirectoryOrCreate
+        - name: server-config
+          configMap:
+            name: sabnzbd-server-config
