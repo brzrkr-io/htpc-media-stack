@@ -103,11 +103,11 @@ spec:
             type: DirectoryOrCreate
         - name: downloads
           hostPath:
-            path: /mnt/media-storage/downloads
+            path: /data/media/downloads
             type: DirectoryOrCreate
         - name: media-library
           hostPath:
-            path: /mnt/media-storage/library
+            path: /data/media/library
             type: DirectoryOrCreate
         - name: server-config
           configMap:
