@@ -8,6 +8,6 @@ data:
   # Read Traefik access logs from container log files on the node
   traefik.yaml: |
     filenames:
-      - /var/log/containers/traefik-*_traefik_traefik-*.log
+      - /var/log/containers/traefik-*_kube-system_traefik-*.log
     labels:
       type: traefik
