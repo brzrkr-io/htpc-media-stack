@@ -50,6 +50,9 @@ spec:
               mountPath: /var/lib/crowdsec/data
             - name: acquis-config
               mountPath: /etc/crowdsec/acquis.d
+            - name: container-logs
+              mountPath: /var/log/containers
+              readOnly: true
           resources:
             requests:
               memory: "128Mi"
@@ -82,3 +85,7 @@ spec:
         - name: acquis-config
           configMap:
             name: crowdsec-acquis
+        - name: container-logs
+          hostPath:
+            path: /var/log/containers
+            type: Directory

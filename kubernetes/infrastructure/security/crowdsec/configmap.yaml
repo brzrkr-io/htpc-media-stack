@@ -5,13 +5,9 @@ metadata:
   name: crowdsec-acquis
   namespace: security
 data:
-  # Acquire Traefik access logs from the Traefik pod
+  # Read Traefik access logs from container log files on the node
   traefik.yaml: |
-    source: kubernetes
+    filenames:
+      - /var/log/containers/traefik-*_traefik_traefik-*.log
     labels:
       type: traefik
-    namespace: traefik
-    pod_name:
-      - traefik-*
-    container_name:
-      - traefik
