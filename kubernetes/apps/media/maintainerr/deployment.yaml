@@ -23,7 +23,7 @@ spec:
       initContainers:
         - name: fix-permissions
           image: busybox:latest
-          command: ["sh", "-c", "chown -R 999:999 /opt/data"]
+          command: ["sh", "-c", "chown -R 1000:1000 /opt/data"]
           volumeMounts:
             - name: config
               mountPath: /opt/data
