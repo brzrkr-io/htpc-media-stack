@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crowdsec-acquis
+  namespace: security
+data:
+  # Acquire Traefik access logs from the Traefik pod
+  traefik.yaml: |
+    source: kubernetes
+    labels:
+      type: traefik
+    namespace: traefik
+    pod_name:
+      - traefik-*
+    container_name:
+      - traefik

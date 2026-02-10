@@ -1,4 +1,6 @@
 ---
+# ExternalName service redirects Prowlarr's FlareSolverr requests
+# to the VPN-protected instance in the downloads namespace
 apiVersion: v1
 kind: Service
 metadata:
@@ -7,11 +9,5 @@ metadata:
   labels:
     app: flaresolverr
 spec:
-  type: ClusterIP
-  selector:
-    app: flaresolverr
-  ports:
-    - name: http
-      port: 8191
-      targetPort: 8191
-      protocol: TCP
+  type: ExternalName
+  externalName: flaresolverr.downloads.svc.cluster.local

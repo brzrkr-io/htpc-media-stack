@@ -1,52 +1,6 @@
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: flaresolverr
-  namespace: media
-  labels:
-    app: flaresolverr
-spec:
-  replicas: 1
-  strategy:
-    type: Recreate
-  selector:
-    matchLabels:
-      app: flaresolverr
-  template:
-    metadata:
-      labels:
-        app: flaresolverr
-    spec:
-      containers:
-        - name: flaresolverr
-          image: ghcr.io/flaresolverr/flaresolverr:latest
-          env:
-            - name: LOG_LEVEL
-              value: "info"
-            - name: TZ
-              value: "America/Chicago"
-          ports:
-            - containerPort: 8191
-              name: http
-              protocol: TCP
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
-              memory: "1Gi"
-              cpu: "1000m"
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 8191
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            failureThreshold: 5
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 8191
-            initialDelaySeconds: 10
-            periodSeconds: 10
+# FlareSolverr has been moved into the Gluetun VPN pod (downloads namespace)
+# to route all challenge-solving traffic through ProtonVPN.
+# See: kubernetes/apps/downloads/gluetun/deployment.yaml
+#
+# This file is intentionally empty - the deployment lives in the gluetun pod.

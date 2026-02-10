@@ -28,11 +28,12 @@ The SanDisk Extreme 8TB USB drive (Vendor: 0781, Product: 55dd) has UAS driver i
 UUID=83f6071d-e7b6-46b4-9427-f2172981341f /mnt/media-storage ext4 defaults,nofail,x-systemd.device-timeout=10 0 2
 ```
 
-## API Keys (as of Dec 26, 2025)
+## API Keys (as of Jan 7, 2026)
 - Prowlarr: b19d0bd1806b45eab740ba5829c119e0
 - Sonarr: 90a00b9e090b4f0f803fd3fb1298faa0
 - Radarr: 6a16b3b4b8da4dcaa522d49b27fd2f16
 - SABnzbd: 6ae647c8f6554f33ba2ceae7ff075b27
+- Bazarr: 4f9141b6d4ff051d8186a3d4b4aee56b
 
 ## Service Cluster IPs (for API calls)
 - Prowlarr: 10.43.146.194:9696

@@ -1,6 +1,6 @@
 ---
-# Gluetun VPN container - routes Transmission traffic through ProtonVPN
-# Transmission runs as a sidecar sharing Gluetun's network namespace
+# Gluetun VPN container - routes Transmission and FlareSolverr through ProtonVPN
+# All sidecar traffic is forced through the VPN tunnel
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -48,9 +48,9 @@ spec:
               value: "United States"
             - name: FREE_ONLY
               value: "false"
-            # P2P servers for port forwarding
+            # Only connect to P2P servers that support port forwarding
             - name: PORT_FORWARD_ONLY
-              value: "false"
+              value: "true"
             # Port forwarding - required for torrent seeding/downloading
             - name: VPN_PORT_FORWARDING
               value: "on"
@@ -68,14 +68,17 @@ spec:
               value: "10s"
             # Firewall - allow LAN and cluster access
             - name: FIREWALL_INPUT_PORTS
-              value: "9091" # Transmission WebUI
+              value: "9091,8191" # Transmission WebUI + FlareSolverr
             - name: FIREWALL_OUTBOUND_SUBNETS
-              value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16" # Allow LAN
+              value: "10.42.0.0/16,10.43.0.0/16,192.168.0.0/16" # k3s pod + svc + LAN (avoids VPN subnet overlap)
             - name: FIREWALL_VPN_INPUT_PORTS
               value: "9091"
           ports:
             - containerPort: 9091
               name: trans-web
+              protocol: TCP
+            - containerPort: 8191
+              name: flaresolverr
               protocol: TCP
           volumeMounts:
             - name: gluetun-data
@@ -104,7 +107,7 @@ spec:
             - name: PGID
               value: "1000"
             - name: TZ
-              value: "America/New_York"
+              value: "America/Chicago"
           volumeMounts:
             - name: transmission-config
               mountPath: /config
@@ -112,6 +115,27 @@ spec:
               mountPath: /downloads
             - name: media-library
               mountPath: /media
+            - name: watch
+              mountPath: /watch
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+
+        # FlareSolverr - shares VPN network with Gluetun
+        # Solves Cloudflare challenges for Prowlarr indexers through VPN
+        - name: flaresolverr
+          image: ghcr.io/flaresolverr/flaresolverr:latest
+          env:
+            - name: LOG_LEVEL
+              value: "info"
+            - name: TZ
+              value: "America/Chicago"
+            - name: CAPTCHA_SOLVER
+              value: "none"
           resources:
             requests:
               memory: "256Mi"
@@ -134,4 +158,8 @@ spec:
         - name: media-library
           hostPath:
             path: /data/media/library
+            type: DirectoryOrCreate
+        - name: watch
+          hostPath:
+            path: /data/media/downloads/watch
             type: DirectoryOrCreate

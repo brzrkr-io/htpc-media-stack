@@ -16,6 +16,24 @@ spec:
   selector:
     app: gluetun-transmission
 ---
+# FlareSolverr service - routed through VPN via Gluetun sidecar
+apiVersion: v1
+kind: Service
+metadata:
+  name: flaresolverr
+  namespace: downloads
+  labels:
+    app: gluetun-transmission
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8191
+      targetPort: 8191
+      protocol: TCP
+      name: http
+  selector:
+    app: gluetun-transmission
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

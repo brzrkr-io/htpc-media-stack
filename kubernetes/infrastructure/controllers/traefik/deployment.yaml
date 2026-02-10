@@ -78,6 +78,8 @@ spec:
             - --entrypoints.web.address=:80
             - --entrypoints.websecure.address=:443
             - --log.level=INFO
+            - --accesslog=true
+            - --accesslog.format=json
           ports:
             - name: web
               containerPort: 80

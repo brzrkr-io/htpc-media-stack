@@ -1,0 +1,206 @@
+---
+# Exportarr - Prometheus exporters for *arr applications
+# Exports metrics from Sonarr, Radarr, Prowlarr, and SABnzbd
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exportarr-sonarr
+  namespace: monitoring
+  labels:
+    app: exportarr-sonarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exportarr-sonarr
+  template:
+    metadata:
+      labels:
+        app: exportarr-sonarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9707"
+    spec:
+      containers:
+        - name: exportarr
+          image: ghcr.io/onedr0p/exportarr:v2.0
+          args:
+            - sonarr
+          env:
+            - name: PORT
+              value: "9707"
+            - name: URL
+              value: "http://sonarr.media.svc.cluster.local:8989"
+            - name: APIKEY
+              value: "90a00b9e090b4f0f803fd3fb1298faa0"
+            - name: ENABLE_ADDITIONAL_METRICS
+              value: "true"
+          ports:
+            - containerPort: 9707
+              name: metrics
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "25m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9707
+            initialDelaySeconds: 10
+            periodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exportarr-radarr
+  namespace: monitoring
+  labels:
+    app: exportarr-radarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exportarr-radarr
+  template:
+    metadata:
+      labels:
+        app: exportarr-radarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9708"
+    spec:
+      containers:
+        - name: exportarr
+          image: ghcr.io/onedr0p/exportarr:v2.0
+          args:
+            - radarr
+          env:
+            - name: PORT
+              value: "9708"
+            - name: URL
+              value: "http://radarr.media.svc.cluster.local:7878"
+            - name: APIKEY
+              value: "6a16b3b4b8da4dcaa522d49b27fd2f16"
+            - name: ENABLE_ADDITIONAL_METRICS
+              value: "true"
+          ports:
+            - containerPort: 9708
+              name: metrics
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "25m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9708
+            initialDelaySeconds: 10
+            periodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exportarr-prowlarr
+  namespace: monitoring
+  labels:
+    app: exportarr-prowlarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exportarr-prowlarr
+  template:
+    metadata:
+      labels:
+        app: exportarr-prowlarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9709"
+    spec:
+      containers:
+        - name: exportarr
+          image: ghcr.io/onedr0p/exportarr:v2.0
+          args:
+            - prowlarr
+          env:
+            - name: PORT
+              value: "9709"
+            - name: URL
+              value: "http://prowlarr.media.svc.cluster.local:9696"
+            - name: APIKEY
+              value: "b19d0bd1806b45eab740ba5829c119e0"
+            - name: ENABLE_ADDITIONAL_METRICS
+              value: "true"
+          ports:
+            - containerPort: 9709
+              name: metrics
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "25m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9709
+            initialDelaySeconds: 10
+            periodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exportarr-sabnzbd
+  namespace: monitoring
+  labels:
+    app: exportarr-sabnzbd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exportarr-sabnzbd
+  template:
+    metadata:
+      labels:
+        app: exportarr-sabnzbd
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9710"
+    spec:
+      containers:
+        - name: exportarr
+          image: ghcr.io/onedr0p/exportarr:v2.0
+          args:
+            - sabnzbd
+          env:
+            - name: PORT
+              value: "9710"
+            - name: URL
+              value: "http://sabnzbd.downloads.svc.cluster.local:8080"
+            - name: APIKEY
+              value: "6ae647c8f6554f33ba2ceae7ff075b27"
+            - name: ENABLE_ADDITIONAL_METRICS
+              value: "true"
+          ports:
+            - containerPort: 9710
+              name: metrics
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "25m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9710
+            initialDelaySeconds: 10
+            periodSeconds: 30
