@@ -20,6 +20,13 @@ spec:
       labels:
         app: maintainerr
     spec:
+      initContainers:
+        - name: fix-permissions
+          image: busybox:latest
+          command: ["sh", "-c", "chown -R 999:999 /opt/data"]
+          volumeMounts:
+            - name: config
+              mountPath: /opt/data
       containers:
         - name: maintainerr
           image: ghcr.io/jorenn92/maintainerr:latest
