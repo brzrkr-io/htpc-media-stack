@@ -29,7 +29,7 @@ spec:
               mountPath: /opt/data
       containers:
         - name: maintainerr
-          image: ghcr.io/jorenn92/maintainerr:latest
+          image: ghcr.io/jorenn92/maintainerr:latest # {"$imagepolicy": "flux-system:maintainerr"}
           env:
             - name: TZ
               value: "America/New_York"

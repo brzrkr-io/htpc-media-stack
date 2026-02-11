@@ -1,0 +1,168 @@
+---
+# Flux Image Repositories - track container image tags for auto-updates
+#
+# Prerequisites: Flux image-reflector-controller and image-automation-controller
+# must be installed. If not already bootstrapped, run:
+#   flux install --components-extra=image-reflector-controller,image-automation-controller
+#
+# These ImageRepository resources tell Flux to scan container registries
+# for new tags on a regular interval.
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: sonarr
+  namespace: flux-system
+spec:
+  image: lscr.io/linuxserver/sonarr
+  interval: 6h
+  exclusionList:
+    - "^develop.*"
+    - "^nightly.*"
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: radarr
+  namespace: flux-system
+spec:
+  image: lscr.io/linuxserver/radarr
+  interval: 6h
+  exclusionList:
+    - "^develop.*"
+    - "^nightly.*"
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: prowlarr
+  namespace: flux-system
+spec:
+  image: lscr.io/linuxserver/prowlarr
+  interval: 6h
+  exclusionList:
+    - "^develop.*"
+    - "^nightly.*"
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: jellyfin
+  namespace: flux-system
+spec:
+  image: lscr.io/linuxserver/jellyfin
+  interval: 6h
+  exclusionList:
+    - "^nightly.*"
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: jellyseerr
+  namespace: flux-system
+spec:
+  image: fallenbagel/jellyseerr
+  interval: 6h
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: bazarr
+  namespace: flux-system
+spec:
+  image: lscr.io/linuxserver/bazarr
+  interval: 6h
+  exclusionList:
+    - "^develop.*"
+    - "^nightly.*"
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: sabnzbd
+  namespace: flux-system
+spec:
+  image: lscr.io/linuxserver/sabnzbd
+  interval: 6h
+  exclusionList:
+    - "^nightly.*"
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: transmission
+  namespace: flux-system
+spec:
+  image: lscr.io/linuxserver/transmission
+  interval: 6h
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: gluetun
+  namespace: flux-system
+spec:
+  image: qmcgaw/gluetun
+  interval: 6h
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: flaresolverr
+  namespace: flux-system
+spec:
+  image: ghcr.io/flaresolverr/flaresolverr
+  interval: 6h
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: recyclarr
+  namespace: flux-system
+spec:
+  image: ghcr.io/recyclarr/recyclarr
+  interval: 6h
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: fileflows
+  namespace: flux-system
+spec:
+  image: revenz/fileflows
+  interval: 6h
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: maintainerr
+  namespace: flux-system
+spec:
+  image: ghcr.io/jorenn92/maintainerr
+  interval: 6h
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: unpackerr
+  namespace: flux-system
+spec:
+  image: golift/unpackerr
+  interval: 6h
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: uptime-kuma
+  namespace: flux-system
+spec:
+  image: louislam/uptime-kuma
+  interval: 6h
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: glance
+  namespace: flux-system
+spec:
+  image: glanceapp/glance
+  interval: 6h

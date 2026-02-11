@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: fileflows
-          image: revenz/fileflows:latest
+          image: revenz/fileflows:latest # {"$imagepolicy": "flux-system:fileflows"}
           command: ["bash", "-c", "apt-get update -qq && apt-get install -y -qq ffmpeg >/dev/null 2>&1 && ln -sf /usr/bin/ffmpeg /usr/local/bin/ffmpeg && ln -sf /usr/bin/ffprobe /usr/local/bin/ffprobe && exec /app/docker-entrypoint.sh"]
           env:
             - name: TZ

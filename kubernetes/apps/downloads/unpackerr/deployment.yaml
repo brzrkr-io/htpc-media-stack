@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: unpackerr
-          image: golift/unpackerr:latest
+          image: golift/unpackerr:latest # {"$imagepolicy": "flux-system:unpackerr"}
           env:
             - name: TZ
               value: "America/New_York"

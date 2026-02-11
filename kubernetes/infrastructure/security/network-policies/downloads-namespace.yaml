@@ -1,0 +1,122 @@
+---
+# NetworkPolicy for the downloads namespace
+#
+# NOTE: k3s uses flannel as the default CNI, which does NOT enforce
+# NetworkPolicies. These policies document intended network segmentation
+# and will be enforced if the CNI is switched to Calico, Cilium, or
+# another policy-aware CNI plugin.
+#
+# Allowed traffic:
+#   Ingress:
+#     - From media namespace (arr apps talking to download clients)
+#     - From kube-system namespace (traefik ingress controller)
+#   Egress:
+#     - To media namespace (status callbacks to arr apps)
+#     - To DNS (kube-dns in kube-system)
+#     - To internet (for downloading content)
+
+# Default deny all ingress and egress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: downloads
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# Allow ingress from media namespace (Sonarr/Radarr -> SABnzbd/Transmission)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-from-media
+  namespace: downloads
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: media
+---
+# Allow ingress from kube-system (Traefik ingress)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-from-traefik
+  namespace: downloads
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+---
+# Allow egress to media namespace (callbacks to arr apps)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-to-media
+  namespace: downloads
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: media
+---
+# Allow egress to DNS (kube-dns in kube-system)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-dns
+  namespace: downloads
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# Allow egress to internet (for downloading content)
+# This allows all egress to IPs outside the cluster CIDR ranges.
+# Since NetworkPolicy cannot express "not in CIDR" directly,
+# we allow all egress on common download ports and rely on the
+# default-deny + specific allow rules for intra-cluster traffic.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-internet
+  namespace: downloads
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    # Allow all egress to non-private IP ranges (internet)
+    # We exclude cluster and private ranges by explicitly allowing
+    # only external CIDR blocks
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.42.0.0/16  # k3s pod CIDR
+              - 10.43.0.0/16  # k3s service CIDR

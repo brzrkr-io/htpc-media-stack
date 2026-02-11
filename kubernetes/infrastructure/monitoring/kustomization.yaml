@@ -8,3 +8,5 @@ resources:
   - node-exporter
   - uptime-kuma
   - exportarr
+  - loki
+  - promtail

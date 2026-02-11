@@ -58,7 +58,7 @@ spec:
               mountPath: /server-config
       containers:
         - name: sabnzbd
-          image: lscr.io/linuxserver/sabnzbd:latest
+          image: lscr.io/linuxserver/sabnzbd:latest # {"$imagepolicy": "flux-system:sabnzbd"}
           env:
             - name: PUID
               value: "1000"

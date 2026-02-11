@@ -1,0 +1,40 @@
+---
+# Flux ImageUpdateAutomation - automatically commits image tag updates to Git
+#
+# This resource monitors all ImagePolicy resources and when a new image digest
+# is detected for a "latest" tag, it triggers a rollout by committing the
+# update back to the Git repository. Flux then reconciles the change.
+#
+# Schedule: Daily at 4:00 AM Eastern Time
+# This ensures updates happen during low-usage hours.
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageUpdateAutomation
+metadata:
+  name: htpc-image-updates
+  namespace: flux-system
+spec:
+  interval: 6h
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: flux-image-automation
+        email: flux@htpc-media-stack.local
+      messageTemplate: |
+        chore(images): auto-update container images
+
+        Automated image update by Flux Image Automation.
+        {{range .Changed.Changes}}
+        - {{.OldValue}} -> {{.NewValue}}
+        {{end}}
+    push:
+      branch: main
+  update:
+    path: ./kubernetes
+    strategy: Setters
+  suspend: false

@@ -8,6 +8,7 @@ data:
   recyclarr.yml: |
     # Recyclarr Configuration - TRaSH Guides Optimal Settings
     # English-only, No AI/Upscales, Prefer Usenet
+    # Based on TRaSH Guides recommended profiles (recyclarr v7+ format)
 
     sonarr:
       sonarr-main:
@@ -39,41 +40,84 @@ data:
                   - WEBDL-720p
                   - WEBRip-720p
 
+          - name: WEB-DL (2160p)
+            reset_unmatched_scores:
+              enabled: true
+            upgrade:
+              allowed: true
+              until_quality: WEB 2160p
+              until_score: 10000
+            min_format_score: 0
+            quality_sort: top
+            qualities:
+              - name: WEB 2160p
+                qualities:
+                  - WEBDL-2160p
+                  - WEBRip-2160p
+              - name: Bluray-2160p
+              - name: WEB 1080p
+                qualities:
+                  - WEBDL-1080p
+                  - WEBRip-1080p
+
         custom_formats:
-          # === MUST HAVE: Reject Non-English & AI ===
+          # ===========================================
+          # Unwanted
+          # ===========================================
           - trash_ids:
-              - 4eb3c272d48db8ab43c2c85283b69744  # Upscaled
-              - 85c61753df5f1fb6f8f4b3c50a8c5c96  # AI Upscale
+              - 85c61753df5f1fb6f8f4b3c50a8c5c96  # BR-DISK
+              - 9c11cd3f07101cdba90a2d81cf0e56b4  # LQ
+              - e2315f990da2e2cbeb5f1b311f3c0d2b  # LQ (Release Title)
+              - 47435ece6b99a0b477caf360e79ba0bb  # x265 (HD)
+              - fbcb31d8f2f3ef480491e8c982d1e8a2  # Extras
+              - 15a05bc7c1a36e2b57fd628f8e2f9571  # AV1
             quality_profiles:
               - name: WEB-DL (1080p)
                 score: -10000
-
-          # === Language: English Required ===
-          - trash_ids:
-              - d5146e2a7e2d3eb60e7e9035b14a51f7  # English
-            quality_profiles:
-              - name: WEB-DL (1080p)
-                score: 0
-
-          - trash_ids:
-              - fb334f2d4e5b7f8a9c4b3b7f3e8a2d1c  # Non-English (reject)
-            quality_profiles:
-              - name: WEB-DL (1080p)
+              - name: WEB-DL (2160p)
                 score: -10000
 
-          # === Bad Groups & Quality Issues ===
+          # ===========================================
+          # Misc
+          # ===========================================
+          - trash_ids:
+              - ec8fa7296b64e8cd390a1600981f3923  # Repack/Proper
+              - eb3d5cc0a2be0db205fb823640db6a3c  # Repack v2
+              - 44e7c4de10ae50265753082c5dc2eeb4  # Repack v3
+            quality_profiles:
+              - name: WEB-DL (1080p)
+                score: 5
+              - name: WEB-DL (2160p)
+                score: 5
+
           - trash_ids:
               - 32b367365729d530ca1c124a0b180c64  # Bad Dual Groups
               - 82d40da2bc6923f41e14394075dd4b03  # No-RlsGroup
               - e1a997ddb54e3ecbfe06341ad323c458  # Obfuscated
               - 06d66ab109d4d2eddb2794d21526d140  # Retags
               - 1b3994c551cbb92a2c781af061f4ab44  # Scene
-              - 47435ece6b99a0b477caf360e79ba0bb  # x265 (HD) - prefer x264 for compatibility
             quality_profiles:
               - name: WEB-DL (1080p)
                 score: -10000
+              - name: WEB-DL (2160p)
+                score: -10000
 
-          # === Streaming Services (Prefer quality sources) ===
+          # ===========================================
+          # HQ Release Groups
+          # ===========================================
+          - trash_ids:
+              - e6258996055b9fbab7e9cb2f75819294  # WEB Tier 01
+              - 58790d4e2fdcd9733aa7ae68ba2bb503  # WEB Tier 02
+              - d84935abd3f8556dcd51d4f27e22f0a6  # WEB Tier 03
+            quality_profiles:
+              - name: WEB-DL (1080p)
+                score: 1700
+              - name: WEB-DL (2160p)
+                score: 1700
+
+          # ===========================================
+          # Streaming Services
+          # ===========================================
           - trash_ids:
               - d660701077794679fd59e8bdf4ce3a29  # AMZN
               - f67c9ca88f463a48346062e8ad07713f  # ATVP
@@ -96,25 +140,52 @@ data:
             quality_profiles:
               - name: WEB-DL (1080p)
                 score: 100
+              - name: WEB-DL (2160p)
+                score: 100
 
-          # === Prefer P2P/Scene Quality ===
+          # ===========================================
+          # HDR Formats (2160p profile only)
+          # ===========================================
           - trash_ids:
-              - e6258996055b9fbab7e9cb2f75819294  # WEB Tier 01
-              - 58790d4e2fdcd9733aa7ae68ba2bb503  # WEB Tier 02
-              - d84935abd3f8556dcd51d4f27e22f0a6  # WEB Tier 03
+              - 2b239ed870daba8126a53bd5dc8dc1c8  # DV HDR10Plus
+              - 7878c33f1b83b65ee27fa781a39792e8  # DV HDR10
+              - 6d0d8de7b57e35518ac0308b0ddf404e  # DV
+              - 1f733af03141f068a540eec352589a89  # DV HLG
+              - 27954b564a2a8f11e2a5a14ae9455e87  # DV SDR
+              - a3d82cbef5039f8d295478d28a887159  # HDR10Plus
+              - 3497799d29a085e2ac2df9d468413c94  # HDR10
+              - 3e2c4e748b64a1a1118e0ea3f4cf6875  # HDR
+              - bb019e1cd00f304f80571c630e83cb5b  # HDR (undefined)
+              - 2a4d9069cc1fe3a77d5f93e085f6befd  # 10bit
+              - 0dad0a507451acddd754fe6dc3a7f5e7  # HLG
+              - b17886cb4158d9fea189859c7c3e2571  # PQ
             quality_profiles:
               - name: WEB-DL (1080p)
-                score: 1700
+                score: 0
+              - name: WEB-DL (2160p)
+                score: 500
+
+          # ===========================================
+          # Unwanted UHD (block SDR in 2160p profile)
+          # ===========================================
           - trash_ids:
-              - d0c516558625b04b363f9a44c0e75a6a  # WEB Tier 01
+              - 9b64dff695c2115f3bb01b95e2ac0f6b  # SDR (no WEBDL)
+              - 25c12f78430a3a23413652cbd1d48d77  # SDR
+            quality_profiles:
+              - name: WEB-DL (2160p)
+                score: -10000
+
+          # ===========================================
+          # Audio Channels
+          # ===========================================
+          - trash_ids:
+              - 3fbafa924f361e66fbc6187af82dfa85  # 5.1 Surround
+              - 9fb6d778592c293b5f70c6f6a3a950de  # 7.1 Surround
             quality_profiles:
               - name: WEB-DL (1080p)
-                score: 1600
-          - trash_ids:
-              - d88f26c9d1cce3c4ac4e8b1f7b1c8e4a  # WEB Tier 02
-            quality_profiles:
-              - name: WEB-DL (1080p)
-                score: 1500
+                score: 50
+              - name: WEB-DL (2160p)
+                score: 50
 
     radarr:
       radarr-main:
@@ -146,8 +217,59 @@ data:
                   - WEBDL-720p
                   - WEBRip-720p
 
+          - name: UHD Bluray + WEB
+            reset_unmatched_scores:
+              enabled: true
+            upgrade:
+              allowed: true
+              until_quality: Bluray-2160p
+              until_score: 10000
+            min_format_score: 0
+            quality_sort: top
+            qualities:
+              - name: Bluray-2160p
+              - name: WEB 2160p
+                qualities:
+                  - WEBDL-2160p
+                  - WEBRip-2160p
+              - name: Bluray-1080p
+              - name: WEB 1080p
+                qualities:
+                  - WEBDL-1080p
+                  - WEBRip-1080p
+
         custom_formats:
-          # === MUST HAVE: Reject Non-English & AI ===
+          # ===========================================
+          # Unwanted
+          # ===========================================
+          - trash_ids:
+              - b8cd450cbfa689c0259a01d9e29ba3d6  # 3D
+              - ed38b889b31be83fda192888e2286d83  # BR-DISK
+              - 90a6f9a284dff5103f6346090e6280c8  # LQ
+              - e204b80c87be9497a8a6eaff48f72905  # LQ (Release Title)
+              - bfd8eb01832d646a0a89c4deb46f8564  # Upscaled
+              - dc98083571e3c11597f10e75ad7aef86  # x265 (HD)
+              - 0a3f082873eb454bde444150b70253cc  # Extras
+              - cae4ca30163749b891686f95532519bd  # AV1
+            quality_profiles:
+              - name: HD Bluray + WEB
+                score: -10000
+              - name: UHD Bluray + WEB
+                score: -10000
+
+          # ===========================================
+          # Misc
+          # ===========================================
+          - trash_ids:
+              - e7718d7a3ce595f289bfee26adc178f1  # Repack/Proper
+              - ae43b294509409a6a13919dedd4764c4  # Repack v2
+              - 5caaaa1c08c1742aa4342571f9c27eeb  # Repack v3
+            quality_profiles:
+              - name: HD Bluray + WEB
+                score: 5
+              - name: UHD Bluray + WEB
+                score: 5
+
           - trash_ids:
               - b6832f586342ef70d9c128d40c07b872  # Bad Dual Groups
               - 90cedc1fea7ea5d11298bebd3d1d3223  # EVO (no WEBDL)
@@ -155,18 +277,38 @@ data:
               - 7357cf5161efbf8c4d5d0c30b4815ee2  # Obfuscated
               - 5c44f52a8714fdd79bb4d98e2673be1f  # Retags
               - f537cf427b64c38c8e36298f657e4828  # Scene
-              - 839bea857ed2c0a8e084f3cbdbd65ecb  # x265 (no HDR/DV)
-              - b8cd450cbfa689c0259a01d9e29ba3d6  # 3D
-              - ed38b889b31be83fda192888e2286d83  # BR-DISK
-              - 90a6f9a284dff5103f6346090e6280c8  # LQ
-              - e204b80c87be9497a8a6eaff48f72905  # LQ (Release Title)
-              - bfd8eb01832d646a0a89c4deb46f8564  # Upscaled
-              - 9c38ebb7384dada637be8899efa68e6f  # SDR
             quality_profiles:
               - name: HD Bluray + WEB
                 score: -10000
+              - name: UHD Bluray + WEB
+                score: -10000
 
-          # === Streaming Services ===
+          # ===========================================
+          # HQ Release Groups
+          # ===========================================
+          - trash_ids:
+              - c20f169ef63c5f40c2def54abaf4438e  # WEB Tier 01
+              - 403816d65392c79236dcb6dd591aeda4  # WEB Tier 02
+              - af94e0fe497f461f3f30137f68cb631c  # WEB Tier 03
+            quality_profiles:
+              - name: HD Bluray + WEB
+                score: 1700
+              - name: UHD Bluray + WEB
+                score: 1700
+
+          - trash_ids:
+              - ed27ebfef2f323e964fb1f61f953a7f9  # Bluray Tier 01
+              - c20c8647f2571dc09d5c7fa5bba67f1d  # Bluray Tier 02
+              - 5608c71999cfdd5e1e87237e70c5e950  # Bluray Tier 03
+            quality_profiles:
+              - name: HD Bluray + WEB
+                score: 1600
+              - name: UHD Bluray + WEB
+                score: 1600
+
+          # ===========================================
+          # Streaming Services
+          # ===========================================
           - trash_ids:
               - b3b3a6ac74ecbd56bcdbefa4799fb9df  # AMZN
               - 40e9380490e748672c2522eaaeb692f7  # ATVP
@@ -185,8 +327,12 @@ data:
             quality_profiles:
               - name: HD Bluray + WEB
                 score: 100
+              - name: UHD Bluray + WEB
+                score: 100
 
-          # === Audio Quality ===
+          # ===========================================
+          # Audio Channels
+          # ===========================================
           - trash_ids:
               - 496f355514737f7d83bf7aa4d24f8169  # TrueHD ATMOS
               - 2f22d89048b01681dde8afe203bf2e95  # DTS X
@@ -204,8 +350,44 @@ data:
             quality_profiles:
               - name: HD Bluray + WEB
                 score: 0
+              - name: UHD Bluray + WEB
+                score: 100
 
-          # === Movie Versions ===
+          # ===========================================
+          # HDR Formats (UHD profile scores, neutral for HD)
+          # ===========================================
+          - trash_ids:
+              - e23edd2482476e595fb990b12e7c609c  # DV HDR10Plus
+              - 58d6a88f13e2db7f5059c41047876f00  # DV HDR10
+              - 55d53828b9d81cbe20b02efd00aa0efd  # DV
+              - a3e19f8f627608af0211acd02bf89735  # DV HLG
+              - e61e28db95d22bedcadf030b8f156571  # DV SDR
+              - b974a6cd08c1066250f1f177d7aa1225  # HDR10Plus
+              - dfb86d5941bc9075d6af23b09c2aeecd  # HDR10
+              - e38c1ab46f2591c1e7e242d5d8e849b2  # HDR
+              - b2be17d608fc88818940cd1833b0b24c  # HDR (undefined)
+              - 9364dd386c9b4a1100dde8264690c2f2  # 10bit
+              - 08d6d8834ad9ec87b1dc7ec8148e7a1f  # HLG
+              - ee236c0b01ba66e106aad6405cba7579  # PQ
+            quality_profiles:
+              - name: HD Bluray + WEB
+                score: 0
+              - name: UHD Bluray + WEB
+                score: 500
+
+          # ===========================================
+          # Unwanted UHD (block SDR in UHD profile)
+          # ===========================================
+          - trash_ids:
+              - 9c38ebb7384dada637be8899efa68e6f  # SDR
+              - 25c12f78430a3a23413652cbd1d48d77  # SDR (no WEBDL)
+            quality_profiles:
+              - name: UHD Bluray + WEB
+                score: -10000
+
+          # ===========================================
+          # Movie Versions
+          # ===========================================
           - trash_ids:
               - eca37840c13c6ef2dd0262b141a5482f  # 4K Remaster
               - e0c07d59beb37348e975a930d5e50319  # Criterion Collection
@@ -216,4 +398,6 @@ data:
               - 9f6cbff8cfe4ebbc1bde14c7b7bec0de  # IMAX Enhanced
             quality_profiles:
               - name: HD Bluray + WEB
+                score: 50
+              - name: UHD Bluray + WEB
                 score: 50

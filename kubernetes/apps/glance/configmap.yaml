@@ -260,6 +260,36 @@ data:
                     url: http://bazarr.media.svc.cluster.local:6767
                     icon: si:bazarr
 
+              - type: custom-api
+                title: Sonarr Stats
+                cache: 5m
+                url: http://sonarr.media.svc.cluster.local:8989/api/v3/wanted/missing?pageSize=1
+                headers:
+                  X-Api-Key: 90a00b9e090b4f0f803fd3fb1298faa0
+                template: |
+                  {{ $series := newRequest "http://sonarr.media.svc.cluster.local:8989/api/v3/series"
+                    | withHeader "X-Api-Key" "90a00b9e090b4f0f803fd3fb1298faa0"
+                    | getResponse }}
+                  <ul class="list-gap-10 collapsible-container" data-collapse-after="5">
+                    <li>Series Monitored: <strong>{{ len ($series.JSON.Array "") }}</strong></li>
+                    <li>Missing Episodes: <strong>{{ .JSON.Int "totalRecords" }}</strong></li>
+                  </ul>
+
+              - type: custom-api
+                title: Radarr Stats
+                cache: 5m
+                url: http://radarr.media.svc.cluster.local:7878/api/v3/wanted/missing?pageSize=1
+                headers:
+                  X-Api-Key: 6a16b3b4b8da4dcaa522d49b27fd2f16
+                template: |
+                  {{ $movies := newRequest "http://radarr.media.svc.cluster.local:7878/api/v3/movie"
+                    | withHeader "X-Api-Key" "6a16b3b4b8da4dcaa522d49b27fd2f16"
+                    | getResponse }}
+                  <ul class="list-gap-10 collapsible-container" data-collapse-after="5">
+                    <li>Movies Tracked: <strong>{{ len ($movies.JSON.Array "") }}</strong></li>
+                    <li>Missing Movies: <strong>{{ .JSON.Int "totalRecords" }}</strong></li>
+                  </ul>
+
               - type: releases
                 title: Media Tool Updates
                 repositories:
@@ -272,6 +302,22 @@ data:
 
           - size: full
             widgets:
+              - type: custom-api
+                title: SABnzbd Downloads
+                cache: 30s
+                url: http://sabnzbd.downloads.svc.cluster.local:8080/api?mode=queue&output=json&apikey=6ae647c8f6554f33ba2ceae7ff075b27
+                template: |
+                  <ul class="list-gap-10 collapsible-container" data-collapse-after="6">
+                    <li>Status: <strong>{{ if .JSON.Bool "queue.paused" }}Paused{{ else }}Downloading{{ end }}</strong></li>
+                    <li>Speed: <strong>{{ .JSON.String "queue.speed" }}/s</strong></li>
+                    <li>Queue Size: <strong>{{ .JSON.String "queue.sizeleft" }} remaining</strong></li>
+                    <li>Disk Space: <strong>{{ .JSON.String "queue.diskspace1_norm" }} free</strong></li>
+                    <li>Cache: <strong>{{ .JSON.String "queue.cache_size" }}</strong></li>
+                    {{ range .JSON.Array "queue.slots" }}
+                    <li>{{ .String "filename" }} - {{ .String "percentage" }}% ({{ .String "sizeleft" }} left)</li>
+                    {{ end }}
+                  </ul>
+
               - type: bookmarks
                 groups:
                   - title: Media Apps
@@ -312,6 +358,32 @@ data:
 
           - size: small
             widgets:
+              - type: custom-api
+                title: Transmission Torrents
+                cache: 30s
+                url: http://gluetun-transmission.downloads.svc.cluster.local:9091/transmission/rpc
+                method: POST
+                headers:
+                  Content-Type: application/json
+                body-type: json
+                body:
+                  method: torrent-get
+                  arguments:
+                    fields:
+                      - name
+                      - status
+                      - percentDone
+                      - rateDownload
+                      - rateUpload
+                template: |
+                  {{ $torrents := .JSON.Array "arguments.torrents" }}
+                  <ul class="list-gap-10 collapsible-container" data-collapse-after="5">
+                    <li>Total Torrents: <strong>{{ len $torrents }}</strong></li>
+                    {{ range $torrents }}
+                    <li>{{ .String "name" | trimPrefix "" }} - {{ mul (.Float "percentDone") 100 | formatNumber 1 }}%</li>
+                    {{ end }}
+                  </ul>
+
               - type: reddit
                 subreddit: sonarr
                 title: r/sonarr
@@ -343,9 +415,54 @@ data:
                   - title: Prowlarr
                     url: http://prowlarr.media.svc.cluster.local:9696
                     icon: si:prowlarr
+                  - title: FlareSolverr
+                    url: http://flaresolverr.downloads.svc.cluster.local:8191
+                    icon: si:cloudflare
+
+              - type: custom-api
+                title: SABnzbd Queue
+                cache: 30s
+                url: http://sabnzbd.downloads.svc.cluster.local:8080/api?mode=queue&output=json&apikey=6ae647c8f6554f33ba2ceae7ff075b27
+                template: |
+                  <ul class="list-gap-10 collapsible-container" data-collapse-after="8">
+                    <li>Status: <strong>{{ if .JSON.Bool "queue.paused" }}Paused{{ else }}Active{{ end }}</strong></li>
+                    <li>Speed: <strong>{{ .JSON.String "queue.speed" }}/s</strong></li>
+                    <li>Remaining: <strong>{{ .JSON.String "queue.sizeleft" }}</strong></li>
+                    <li>Disk Free: <strong>{{ .JSON.String "queue.diskspace1_norm" }}</strong></li>
+                    {{ range .JSON.Array "queue.slots" }}
+                    <li>{{ .String "filename" }} - {{ .String "percentage" }}%</li>
+                    {{ end }}
+                  </ul>
 
           - size: full
             widgets:
+              - type: custom-api
+                title: Transmission Active Torrents
+                cache: 30s
+                url: http://gluetun-transmission.downloads.svc.cluster.local:9091/transmission/rpc
+                method: POST
+                headers:
+                  Content-Type: application/json
+                body-type: json
+                body:
+                  method: torrent-get
+                  arguments:
+                    fields:
+                      - name
+                      - status
+                      - percentDone
+                      - rateDownload
+                      - rateUpload
+                      - eta
+                template: |
+                  {{ $torrents := .JSON.Array "arguments.torrents" }}
+                  <ul class="list-gap-10 collapsible-container" data-collapse-after="10">
+                    <li>Total Torrents: <strong>{{ len $torrents }}</strong></li>
+                    {{ range $torrents }}
+                    <li>{{ .String "name" }} - {{ mul (.Float "percentDone") 100 | formatNumber 1 }}%</li>
+                    {{ end }}
+                  </ul>
+
               - type: bookmarks
                 groups:
                   - title: Download Clients
@@ -373,6 +490,17 @@ data:
 
           - size: small
             widgets:
+              - type: custom-api
+                title: FlareSolverr
+                cache: 1m
+                url: http://flaresolverr.downloads.svc.cluster.local:8191/
+                template: |
+                  <ul class="list-gap-10 collapsible-container" data-collapse-after="3">
+                    <li>Status: <strong>{{ .JSON.String "msg" }}</strong></li>
+                    <li>Version: <strong>{{ .JSON.String "version" }}</strong></li>
+                    <li>User-Agent: <strong>{{ .JSON.String "userAgent" }}</strong></li>
+                  </ul>
+
               - type: releases
                 title: Download Tools
                 repositories:
@@ -409,6 +537,12 @@ data:
                   - title: Bazarr
                     url: http://bazarr.media.svc.cluster.local:6767
                     icon: si:bazarr
+                  - title: FlareSolverr
+                    url: http://flaresolverr.downloads.svc.cluster.local:8191
+                    icon: si:cloudflare
+                  - title: Loki
+                    url: http://loki.monitoring.svc.cluster.local:3100/ready
+                    icon: si:grafana
                   - title: Grafana
                     url: http://grafana.monitoring.svc.cluster.local:3000
                     icon: si:grafana

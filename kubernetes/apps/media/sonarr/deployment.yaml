@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: sonarr
-          image: lscr.io/linuxserver/sonarr:latest
+          image: lscr.io/linuxserver/sonarr:latest # {"$imagepolicy": "flux-system:sonarr"}
           env:
             - name: PUID
               value: "1000"

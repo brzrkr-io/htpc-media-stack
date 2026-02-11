@@ -1,0 +1,56 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promtail-config
+  namespace: monitoring
+data:
+  promtail.yaml: |
+    server:
+      http_listen_port: 3101
+      grpc_listen_port: 0
+
+    positions:
+      filename: /run/promtail/positions.yaml
+
+    clients:
+      - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+
+    scrape_configs:
+      # Scrape Kubernetes pod logs
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        pipeline_stages:
+          - cri: {}
+        relabel_configs:
+          # Only scrape pods with logs
+          - source_labels: [__meta_kubernetes_pod_annotation_promtail_io_scrape]
+            action: drop
+            regex: 'false'
+
+          # Use pod name as label
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+
+          # Use namespace as label
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+
+          # Use container name as label
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+
+          # Use app label if present
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+
+          # Use node name as label
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
+
+          # Set the log file path
+          - source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
+            target_label: __path__
+            separator: /
+            replacement: /var/log/pods/*$1/*.log

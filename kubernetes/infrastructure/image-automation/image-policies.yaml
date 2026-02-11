@@ -1,0 +1,230 @@
+---
+# Flux Image Policies - define which tags are considered valid updates
+#
+# These use semver or alphabetical sorting to determine the "latest" tag.
+# Since most images in this stack use the "latest" tag, we use an
+# alphabetical policy that matches "latest" specifically.
+# For images with semver tags, we use semver filtering.
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: sonarr
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: sonarr
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: radarr
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: radarr
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: prowlarr
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: prowlarr
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: jellyfin
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: jellyfin
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: jellyseerr
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: jellyseerr
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: bazarr
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: bazarr
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: sabnzbd
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: sabnzbd
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: transmission
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: transmission
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: gluetun
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: gluetun
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: flaresolverr
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: flaresolverr
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: recyclarr
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: recyclarr
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: fileflows
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: fileflows
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: maintainerr
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: maintainerr
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: unpackerr
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: unpackerr
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: uptime-kuma
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: uptime-kuma
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: glance
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: glance
+  filterTags:
+    pattern: '^latest$'
+  policy:
+    alphabetical:
+      order: asc

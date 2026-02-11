@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: jellyseerr
-          image: fallenbagel/jellyseerr:latest
+          image: fallenbagel/jellyseerr:latest # {"$imagepolicy": "flux-system:jellyseerr"}
           env:
             - name: TZ
               value: "America/New_York"

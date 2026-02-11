@@ -6,3 +6,4 @@ resources:
   - monitoring
   - security
   - backup
+  - image-automation

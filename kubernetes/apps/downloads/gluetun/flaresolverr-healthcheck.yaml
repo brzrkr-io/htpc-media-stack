@@ -1,0 +1,97 @@
+---
+# CronJob to monitor FlareSolverr health inside the gluetun-transmission pod
+# FlareSolverr runs as a sidecar sharing the gluetun network namespace,
+# so we cannot add standard Kubernetes probes directly to it.
+# This CronJob pings the FlareSolverr endpoint every 5 minutes and
+# restarts the pod if FlareSolverr is unresponsive.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: flaresolverr-healthcheck
+  namespace: downloads
+  labels:
+    app: flaresolverr-healthcheck
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 60
+      template:
+        spec:
+          serviceAccountName: flaresolverr-healthcheck
+          restartPolicy: Never
+          containers:
+            - name: healthcheck
+              image: curlimages/curl:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "Checking FlareSolverr health..."
+                  RESPONSE=$(curl -sf --max-time 10 http://flaresolverr.downloads.svc.cluster.local:8191/ 2>&1)
+                  if [ $? -eq 0 ]; then
+                    echo "FlareSolverr is healthy: $RESPONSE"
+                    exit 0
+                  else
+                    echo "FlareSolverr is NOT responding: $RESPONSE"
+                    echo "Requesting pod restart by deleting gluetun-transmission pods..."
+                    # Use the Kubernetes API to restart the pod
+                    APISERVER=https://kubernetes.default.svc
+                    TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+                    CACERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                    # Scale deployment to 0 then back to 1 to force restart
+                    curl -sf --cacert $CACERT -H "Authorization: Bearer $TOKEN" \
+                      -H "Content-Type: application/strategic-merge-patch+json" \
+                      -X PATCH "$APISERVER/apis/apps/v1/namespaces/downloads/deployments/gluetun-transmission" \
+                      -d '{"spec":{"template":{"metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}}}}}'
+                    echo "Restart triggered for gluetun-transmission deployment"
+                    exit 1
+                  fi
+              resources:
+                requests:
+                  memory: "16Mi"
+                  cpu: "10m"
+                limits:
+                  memory: "32Mi"
+                  cpu: "50m"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flaresolverr-healthcheck
+  namespace: downloads
+  labels:
+    app: flaresolverr-healthcheck
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: flaresolverr-healthcheck
+  namespace: downloads
+  labels:
+    app: flaresolverr-healthcheck
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: ["gluetun-transmission"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: flaresolverr-healthcheck
+  namespace: downloads
+  labels:
+    app: flaresolverr-healthcheck
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: flaresolverr-healthcheck
+subjects:
+  - kind: ServiceAccount
+    name: flaresolverr-healthcheck
+    namespace: downloads
