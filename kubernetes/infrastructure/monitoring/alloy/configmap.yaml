@@ -7,84 +7,41 @@ metadata:
 data:
   config.alloy: |
     // Grafana Alloy - Kubernetes log collector
-    // Modern replacement for Promtail using file-based log tailing
+    // Direct filesystem-based log collection (no K8s API dependency)
 
-    // Discover Kubernetes pods
-    discovery.kubernetes "pods" {
-      role = "pod"
-    }
-
-    // Relabel and set log file paths
-    discovery.relabel "pod_logs" {
-      targets = discovery.kubernetes.pods.targets
-
-      // Drop pods that opt out
-      rule {
-        source_labels = ["__meta_kubernetes_pod_annotation_alloy_grafana_com_scrape"]
-        action        = "drop"
-        regex         = "false"
-      }
-
-      // Only keep containers with an ID (running)
-      rule {
-        source_labels = ["__meta_kubernetes_pod_container_id"]
-        action        = "drop"
-        regex         = ""
-      }
-
-      // Set __path__ to the pod log file location
-      rule {
-        source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
-        target_label  = "__path__"
-        separator     = "/"
-        replacement   = "/var/log/pods/*$1/*.log"
-      }
-
-      // Set namespace label
-      rule {
-        source_labels = ["__meta_kubernetes_namespace"]
-        target_label  = "namespace"
-      }
-
-      // Set pod label
-      rule {
-        source_labels = ["__meta_kubernetes_pod_name"]
-        target_label  = "pod"
-      }
-
-      // Set container label
-      rule {
-        source_labels = ["__meta_kubernetes_pod_container_name"]
-        target_label  = "container"
-      }
-
-      // Set node label
-      rule {
-        source_labels = ["__meta_kubernetes_pod_node_name"]
-        target_label  = "node"
-      }
-
-      // Set app label
-      rule {
-        source_labels = ["__meta_kubernetes_pod_label_app"]
-        target_label  = "app"
-      }
-    }
-
-    // Match log files from discovered pods
+    // Match all pod log files on the node
     local.file_match "pod_logs" {
-      path_targets = discovery.relabel.pod_logs.output
+      path_targets = [{
+        __path__ = "/var/log/pods/*/*/*.log",
+      }]
     }
 
-    // Tail log files
+    // Tail matched log files
     loki.source.file "pod_logs" {
       targets    = local.file_match.pod_logs.targets
       forward_to = [loki.process.pod_logs.receiver]
     }
 
-    // Parse CRI log format
+    // Parse CRI format and extract labels from file path
     loki.process "pod_logs" {
+      // Parse CRI log format
       stage.cri {}
+
+      // Extract namespace, pod, container from file path
+      // Path format: /var/log/pods/<namespace>_<pod>_<uid>/<container>/<N>.log
+      stage.regex {
+        source     = "filename"
+        expression = "/var/log/pods/(?P<namespace>[^_]+)_(?P<pod>[^_]+)_[^/]+/(?P<container>[^/]+)/.*\\.log"
+      }
+
+      stage.labels {
+        values = {
+          namespace = "",
+          pod       = "",
+          container = "",
+        }
+      }
+
       forward_to = [loki.write.default.receiver]
     }
 
