@@ -2,40 +2,36 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: tdarr
+  name: fileflows
   namespace: media
   labels:
-    app: tdarr
+    app: fileflows
 spec:
   type: ClusterIP
   ports:
-    - port: 8265
-      targetPort: 8265
+    - port: 5000
+      targetPort: 5000
       protocol: TCP
       name: web
-    - port: 8266
-      targetPort: 8266
-      protocol: TCP
-      name: server
   selector:
-    app: tdarr
+    app: fileflows
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: tdarr
+  name: fileflows
   namespace: media
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
   rules:
-    - host: tdarr.brzrkr.io
+    - host: fileflows.brzrkr.io
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: tdarr
+                name: fileflows
                 port:
-                  number: 8265
+                  number: 5000

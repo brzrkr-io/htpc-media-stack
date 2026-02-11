@@ -1,0 +1,97 @@
+---
+# FileFlows - Automated media transcoding and file processing
+# Uses AMD Radeon 680M GPU via VA-API for hardware-accelerated transcoding
+# Replaces Tdarr - fully free, no paid tier
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fileflows
+  namespace: media
+  labels:
+    app: fileflows
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: fileflows
+  template:
+    metadata:
+      labels:
+        app: fileflows
+    spec:
+      containers:
+        - name: fileflows
+          image: revenz/fileflows:latest
+          env:
+            - name: TZ
+              value: "America/New_York"
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+          ports:
+            - containerPort: 5000
+              name: web
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /app/Data
+            - name: logs
+              mountPath: /app/Logs
+            - name: temp
+              mountPath: /temp
+            - name: movies
+              mountPath: /media/movies
+            - name: tv
+              mountPath: /media/tv
+            - name: dri
+              mountPath: /dev/dri
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "4Gi"
+              cpu: "6000m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+
+      volumes:
+        - name: config
+          hostPath:
+            path: /data/media/config/fileflows/data
+            type: DirectoryOrCreate
+        - name: logs
+          hostPath:
+            path: /data/media/config/fileflows/logs
+            type: DirectoryOrCreate
+        - name: temp
+          hostPath:
+            path: /data/media/config/fileflows/temp
+            type: DirectoryOrCreate
+        - name: movies
+          hostPath:
+            path: /data/media/library/movies
+            type: DirectoryOrCreate
+        - name: tv
+          hostPath:
+            path: /data/media/library/tv
+            type: DirectoryOrCreate
+        - name: dri
+          hostPath:
+            path: /dev/dri
+            type: Directory
