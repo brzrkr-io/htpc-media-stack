@@ -10,6 +10,7 @@
 #     - From kube-system namespace (Traefik ingress controller)
 #   Egress:
 #     - To all namespaces (Prometheus/exportarr scraping metrics)
+#     - To host network (K8s API, node-exporter, Glances)
 #     - To DNS (kube-dns in kube-system)
 
 # Default deny all ingress and egress
@@ -67,6 +68,23 @@ spec:
   egress:
     - to:
         - namespaceSelector: {}
+---
+# Allow egress to host network (K8s API server, node-exporter, Glances, etc.)
+# The K8s API endpoint is at 192.168.1.152:6443 which is outside the pod/service
+# CIDR. namespaceSelector only matches pods, not host-network destinations.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-host-network
+  namespace: monitoring
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 192.168.1.0/24
 ---
 # Allow egress to DNS (kube-dns in kube-system)
 apiVersion: networking.k8s.io/v1
