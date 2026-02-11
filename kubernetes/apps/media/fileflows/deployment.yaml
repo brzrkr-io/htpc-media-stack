@@ -24,6 +24,7 @@ spec:
       containers:
         - name: fileflows
           image: revenz/fileflows:latest
+          command: ["bash", "-c", "apt-get update -qq && apt-get install -y -qq ffmpeg >/dev/null 2>&1 && exec /init"]
           env:
             - name: TZ
               value: "America/New_York"
@@ -61,13 +62,13 @@ spec:
             httpGet:
               path: /
               port: 5000
-            initialDelaySeconds: 30
+            initialDelaySeconds: 120
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: /
               port: 5000
-            initialDelaySeconds: 15
+            initialDelaySeconds: 90
             periodSeconds: 10
 
       volumes:
