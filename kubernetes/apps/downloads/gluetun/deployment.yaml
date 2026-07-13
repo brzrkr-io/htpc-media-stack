@@ -23,7 +23,8 @@ spec:
       containers:
         # Gluetun VPN container
         - name: gluetun
-          image: qmcgaw/gluetun:latest # {"$imagepolicy": "flux-system:gluetun"}
+          image: qmcgaw/gluetun:latest@sha256:b0ee2135e6ba52ad3f102aae9663707cd1c9531485117067a380d3b2b6dd991d # {"$imagepolicy": "flux-system:gluetun"}
+          imagePullPolicy: IfNotPresent
           securityContext:
             capabilities:
               add:
@@ -100,7 +101,8 @@ spec:
 
         # Transmission container - shares network with Gluetun
         - name: transmission
-          image: lscr.io/linuxserver/transmission:latest # {"$imagepolicy": "flux-system:transmission"}
+          image: lscr.io/linuxserver/transmission:latest@sha256:8ae5bb0b1be8289bc4d89f246639f50def76c5bc265eba7223bc56e6aa9e9182 # {"$imagepolicy": "flux-system:transmission"}
+          imagePullPolicy: IfNotPresent
           env:
             - name: PUID
               value: "1000"
@@ -128,7 +130,8 @@ spec:
         # FlareSolverr - shares VPN network with Gluetun
         # Solves Cloudflare challenges for Prowlarr indexers through VPN
         - name: flaresolverr
-          image: ghcr.io/flaresolverr/flaresolverr:latest # {"$imagepolicy": "flux-system:flaresolverr"}
+          image: ghcr.io/flaresolverr/flaresolverr:latest@sha256:139dfee1c6f89249c8d665d1333a42e8ec74ec0a86bc6bb1c8461e10d3a66a47 # {"$imagepolicy": "flux-system:flaresolverr"}
+          imagePullPolicy: IfNotPresent
           env:
             - name: LOG_LEVEL
               value: "info"

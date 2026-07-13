@@ -18,6 +18,7 @@ spec:
           containers:
             - name: backup
               image: alpine:3.21
+              imagePullPolicy: IfNotPresent
               command:
                 - /bin/sh
                 - -c

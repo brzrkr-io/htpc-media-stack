@@ -18,7 +18,8 @@ spec:
         spec:
           containers:
             - name: recyclarr
-              image: ghcr.io/recyclarr/recyclarr:latest # {"$imagepolicy": "flux-system:recyclarr"}
+              image: ghcr.io/recyclarr/recyclarr:latest@sha256:55afe316d3e4e4e3b9120cef7c79436b1b5311f6a18d4ef4b7653e720499c90a # {"$imagepolicy": "flux-system:recyclarr"}
+              imagePullPolicy: IfNotPresent
               args: ["sync"]
               env:
                 - name: TZ

@@ -21,9 +21,15 @@ spec:
       labels:
         app: fileflows
     spec:
+      # VA-API hardware transcoding via render/video groups instead of privileged:true
+      securityContext:
+        supplementalGroups:
+          - 44   # video  -> /dev/dri/card1
+          - 991  # render -> /dev/dri/renderD128 (AMD Radeon 680M, VA-API)
       containers:
         - name: fileflows
-          image: revenz/fileflows:latest # {"$imagepolicy": "flux-system:fileflows"}
+          image: revenz/fileflows:latest@sha256:11780594eaa3e655b65572918cf16bff007060d16aa23d71fe78833871887290 # {"$imagepolicy": "flux-system:fileflows"}
+          imagePullPolicy: IfNotPresent
           command: ["bash", "-c", "apt-get update -qq && apt-get install -y -qq ffmpeg >/dev/null 2>&1 && ln -sf /usr/bin/ffmpeg /usr/local/bin/ffmpeg && ln -sf /usr/bin/ffprobe /usr/local/bin/ffprobe && exec /app/docker-entrypoint.sh"]
           env:
             - name: TZ
@@ -49,8 +55,6 @@ spec:
               mountPath: /media/tv
             - name: dri
               mountPath: /dev/dri
-          securityContext:
-            privileged: true
           resources:
             requests:
               memory: "512Mi"

@@ -22,7 +22,8 @@ spec:
     spec:
       containers:
         - name: sonarr
-          image: lscr.io/linuxserver/sonarr:latest # {"$imagepolicy": "flux-system:sonarr"}
+          image: lscr.io/linuxserver/sonarr:latest@sha256:4b025354d338999e03bf6dbdadcdde94815d39d4a5aba5de3cdc86a56d7d6c51 # {"$imagepolicy": "flux-system:sonarr"}
+          imagePullPolicy: IfNotPresent
           env:
             - name: PUID
               value: "1000"

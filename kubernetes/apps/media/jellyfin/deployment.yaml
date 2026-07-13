@@ -21,9 +21,16 @@ spec:
       labels:
         app: jellyfin
     spec:
+      # Grant the container the host's render/video groups so VA-API hardware
+      # transcoding works WITHOUT privileged:true (verified GIDs on this host).
+      securityContext:
+        supplementalGroups:
+          - 44   # video  -> /dev/dri/card1
+          - 991  # render -> /dev/dri/renderD128 (AMD Radeon 680M, VA-API)
       containers:
         - name: jellyfin
-          image: lscr.io/linuxserver/jellyfin:latest # {"$imagepolicy": "flux-system:jellyfin"}
+          image: lscr.io/linuxserver/jellyfin:latest@sha256:a569ae0bfbd67ca404ae51f54cead7a2522d270179f57b3d12cf80ebff5d683b # {"$imagepolicy": "flux-system:jellyfin"}
+          imagePullPolicy: IfNotPresent
           env:
             - name: PUID
               value: "1000"
@@ -55,8 +62,6 @@ spec:
               readOnly: true
             - name: dri
               mountPath: /dev/dri
-          securityContext:
-            privileged: true
           resources:
             requests:
               memory: "1Gi"
@@ -64,18 +69,29 @@ spec:
             limits:
               memory: "8Gi"
               cpu: "8000m"
+          # Startup probe gives Jellyfin up to 5 min to come up before the
+          # liveness probe can kill it — prevents boot-time restart loops.
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8096
+            periodSeconds: 10
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /health
               port: 8096
-            initialDelaySeconds: 30
             periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 6
           readinessProbe:
             httpGet:
               path: /health
               port: 8096
             initialDelaySeconds: 10
-            periodSeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 10
+            failureThreshold: 6
 
       volumes:
         - name: config

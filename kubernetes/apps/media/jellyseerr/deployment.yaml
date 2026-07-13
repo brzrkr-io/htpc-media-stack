@@ -23,7 +23,8 @@ spec:
     spec:
       containers:
         - name: jellyseerr
-          image: fallenbagel/jellyseerr:latest # {"$imagepolicy": "flux-system:jellyseerr"}
+          image: fallenbagel/jellyseerr:latest@sha256:4538137bc5af902dece165f2bf73776d9cf4eafb6dd714670724af8f3eb77764 # {"$imagepolicy": "flux-system:jellyseerr"}
+          imagePullPolicy: IfNotPresent
           env:
             - name: TZ
               value: "America/New_York"
@@ -47,14 +48,18 @@ spec:
             httpGet:
               path: /api/v1/status
               port: 5055
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 6
           readinessProbe:
             httpGet:
               path: /api/v1/status
               port: 5055
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 10
+            failureThreshold: 6
 
       volumes:
         - name: config

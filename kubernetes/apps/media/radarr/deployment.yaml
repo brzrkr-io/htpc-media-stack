@@ -22,7 +22,8 @@ spec:
     spec:
       containers:
         - name: radarr
-          image: lscr.io/linuxserver/radarr:latest # {"$imagepolicy": "flux-system:radarr"}
+          image: lscr.io/linuxserver/radarr:latest@sha256:2b2c1c05eb3f648d2c80dfab9486147dd7bb0ad4d77fa972fc1c5de8f1da3738 # {"$imagepolicy": "flux-system:radarr"}
+          imagePullPolicy: IfNotPresent
           env:
             - name: PUID
               value: "1000"

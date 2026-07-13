@@ -22,14 +22,16 @@ spec:
     spec:
       initContainers:
         - name: fix-permissions
-          image: busybox:latest
+          image: busybox:1.36
+          imagePullPolicy: IfNotPresent
           command: ["sh", "-c", "chown -R 1000:1000 /opt/data"]
           volumeMounts:
             - name: config
               mountPath: /opt/data
       containers:
         - name: maintainerr
-          image: ghcr.io/jorenn92/maintainerr:latest # {"$imagepolicy": "flux-system:maintainerr"}
+          image: ghcr.io/jorenn92/maintainerr:latest@sha256:bee84707edaf589cda3d18b6813cbfe3a137b52786210c3a28190e10910c1240 # {"$imagepolicy": "flux-system:maintainerr"}
+          imagePullPolicy: IfNotPresent
           env:
             - name: TZ
               value: "America/New_York"
