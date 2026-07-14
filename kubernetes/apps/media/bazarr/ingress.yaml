@@ -7,7 +7,6 @@ metadata:
   labels:
     app: bazarr
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: security-crowdsec-bouncer@kubernetescrd
 spec:
   rules:
     - host: bazarr.brzrkr.io

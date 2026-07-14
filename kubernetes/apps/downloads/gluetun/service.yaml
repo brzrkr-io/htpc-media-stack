@@ -41,7 +41,6 @@ metadata:
   namespace: downloads
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
-    traefik.ingress.kubernetes.io/router.middlewares: security-crowdsec-bouncer@kubernetescrd
 spec:
   rules:
     - host: transmission.brzrkr.io

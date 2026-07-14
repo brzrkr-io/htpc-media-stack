@@ -7,7 +7,6 @@ metadata:
   labels:
     app: sabnzbd
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: security-crowdsec-bouncer@kubernetescrd
 spec:
   rules:
     - host: sabnzbd.brzrkr.io
