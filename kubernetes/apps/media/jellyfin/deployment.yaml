@@ -101,11 +101,11 @@ spec:
         - name: movies
           hostPath:
             path: /data/media/library/movies
-            type: DirectoryOrCreate
+            type: Directory
         - name: tv
           hostPath:
             path: /data/media/library/tv
-            type: DirectoryOrCreate
+            type: Directory
         - name: dri
           hostPath:
             path: /dev/dri

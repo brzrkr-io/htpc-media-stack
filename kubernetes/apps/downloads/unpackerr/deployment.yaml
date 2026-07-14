@@ -88,4 +88,4 @@ spec:
         - name: downloads
           hostPath:
             path: /data/media/downloads
-            type: DirectoryOrCreate
+            type: Directory

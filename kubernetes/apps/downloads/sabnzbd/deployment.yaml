@@ -111,16 +111,16 @@ spec:
         - name: downloads
           hostPath:
             path: /data/media/downloads
-            type: DirectoryOrCreate
+            type: Directory
         # Real NVMe directory (unlike 'downloads', which symlinks to the USB drive)
         - name: incomplete
           hostPath:
             path: /data/media/downloads-incomplete
-            type: DirectoryOrCreate
+            type: Directory
         - name: media-library
           hostPath:
             path: /data/media/library
-            type: DirectoryOrCreate
+            type: Directory
         - name: server-config
           configMap:
             name: sabnzbd-server-config

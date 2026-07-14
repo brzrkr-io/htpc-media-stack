@@ -70,8 +70,8 @@ spec:
         - name: downloads
           hostPath:
             path: /data/media/downloads
-            type: DirectoryOrCreate
+            type: Directory
         - name: movies
           hostPath:
             path: /data/media/library/movies
-            type: DirectoryOrCreate
+            type: Directory

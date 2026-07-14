@@ -157,12 +157,12 @@ spec:
         - name: downloads
           hostPath:
             path: /data/media/downloads
-            type: DirectoryOrCreate
+            type: Directory
         - name: media-library
           hostPath:
             path: /data/media/library
-            type: DirectoryOrCreate
+            type: Directory
         - name: watch
           hostPath:
             path: /data/media/downloads/watch
-            type: DirectoryOrCreate
+            type: Directory
