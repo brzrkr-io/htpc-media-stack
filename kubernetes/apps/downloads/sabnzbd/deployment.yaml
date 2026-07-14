@@ -77,6 +77,11 @@ spec:
               mountPath: /config
             - name: downloads
               mountPath: /downloads
+            # Incomplete downloads land on the internal NVMe so sustained
+            # random writes never hit the flaky USB drive; only the final
+            # completed file moves to /downloads/complete in one pass.
+            - name: incomplete
+              mountPath: /incomplete
             - name: media-library
               mountPath: /media
           resources:
@@ -106,6 +111,11 @@ spec:
         - name: downloads
           hostPath:
             path: /data/media/downloads
+            type: DirectoryOrCreate
+        # Real NVMe directory (unlike 'downloads', which symlinks to the USB drive)
+        - name: incomplete
+          hostPath:
+            path: /data/media/downloads-incomplete
             type: DirectoryOrCreate
         - name: media-library
           hostPath:
