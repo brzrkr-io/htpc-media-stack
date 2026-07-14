@@ -1,6 +1,0 @@
----
-# FlareSolverr has been moved into the Gluetun VPN pod (downloads namespace)
-# to route all challenge-solving traffic through ProtonVPN.
-# See: kubernetes/apps/downloads/gluetun/deployment.yaml
-#
-# This file is intentionally empty - the deployment lives in the gluetun pod.
