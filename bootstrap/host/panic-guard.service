@@ -3,6 +3,7 @@ Description=Enforce panic sysctls to 0 so an oops logs instead of rebooting
 # Start as early as possible; nothing depends on us.
 DefaultDependencies=no
 After=local-fs.target
+Before=sysinit.target
 
 [Service]
 Type=simple
