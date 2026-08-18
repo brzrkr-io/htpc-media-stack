@@ -14,33 +14,6 @@ spec:
       nodePort: 30096
       protocol: TCP
       name: web
-    - port: 8920
-      targetPort: 8920
-      nodePort: 30920
-      protocol: TCP
-      name: web-https
-  selector:
-    app: jellyfin
----
-# UDP services for discovery (optional - for DLNA/auto-discovery)
-apiVersion: v1
-kind: Service
-metadata:
-  name: jellyfin-discovery
-  namespace: media
-  labels:
-    app: jellyfin
-spec:
-  type: NodePort
-  ports:
-    - port: 7359
-      targetPort: 7359
-      protocol: UDP
-      name: discovery
-    - port: 1900
-      targetPort: 1900
-      protocol: UDP
-      name: dlna
   selector:
     app: jellyfin
 ---

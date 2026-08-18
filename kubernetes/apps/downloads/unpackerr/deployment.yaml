@@ -21,11 +21,11 @@ spec:
     spec:
       containers:
         - name: unpackerr
-          image: golift/unpackerr:latest@sha256:4ec141eeb0cb2f971d7c92f21cc40b0d2d50d7920eb7a0557443cca52270c0b0 # {"$imagepolicy": "flux-system:unpackerr"}
+          image: golift/unpackerr:latest@sha256:4ec141eeb0cb2f971d7c92f21cc40b0d2d50d7920eb7a0557443cca52270c0b0
           imagePullPolicy: IfNotPresent
           env:
             - name: TZ
-              value: "America/New_York"
+              value: "America/Chicago"
             - name: UN_DEBUG
               value: "false"
             - name: UN_LOG_FILE
@@ -87,5 +87,5 @@ spec:
       volumes:
         - name: downloads
           hostPath:
-            path: /data/media/downloads
+            path: /data/media/local-media/downloads
             type: Directory

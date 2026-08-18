@@ -1,0 +1,17 @@
+[Unit]
+Description=Enforce panic sysctls to 0 so an oops logs instead of rebooting
+# Start as early as possible; nothing depends on us.
+DefaultDependencies=no
+After=local-fs.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/panic-guard.sh
+Restart=always
+RestartSec=3
+# Tiny footprint, but never let the guard itself be OOM-killed.
+OOMScoreAdjust=-1000
+Nice=-10
+
+[Install]
+WantedBy=sysinit.target

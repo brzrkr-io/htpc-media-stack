@@ -32,26 +32,47 @@ spec:
                 - /bin/sh
                 - -c
                 - |
-                  echo "Checking FlareSolverr health..."
-                  RESPONSE=$(curl -sf --max-time 10 http://flaresolverr.downloads.svc.cluster.local:8191/ 2>&1)
-                  if [ $? -eq 0 ]; then
-                    echo "FlareSolverr is healthy: $RESPONSE"
+                  # Deep health check with restart hysteresis: never restart a pod
+                  # younger than 10 min (post-reboot VPN/Chromium startup), and
+                  # require two consecutive failed checks before restarting.
+                  APISERVER=https://kubernetes.default.svc
+                  TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+                  CACERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                  DEPLOY="$APISERVER/apis/apps/v1/namespaces/downloads/deployments/gluetun-transmission"
+                  kapi() { curl -sf --cacert $CACERT -H "Authorization: Bearer $TOKEN" "$@"; }
+
+                  if curl -sf --max-time 10 http://flaresolverr.downloads.svc.cluster.local:8191/ >/dev/null 2>&1; then
+                    echo "FlareSolverr is healthy"
+                    kapi -X PATCH -H "Content-Type: application/merge-patch+json" "$DEPLOY" \
+                      -d '{"metadata":{"annotations":{"healthcheck.brzrkr.io/strikes":null}}}' >/dev/null
                     exit 0
-                  else
-                    echo "FlareSolverr is NOT responding: $RESPONSE"
-                    echo "Requesting pod restart by deleting gluetun-transmission pods..."
-                    # Use the Kubernetes API to restart the pod
-                    APISERVER=https://kubernetes.default.svc
-                    TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-                    CACERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-                    # Scale deployment to 0 then back to 1 to force restart
-                    curl -sf --cacert $CACERT -H "Authorization: Bearer $TOKEN" \
-                      -H "Content-Type: application/strategic-merge-patch+json" \
-                      -X PATCH "$APISERVER/apis/apps/v1/namespaces/downloads/deployments/gluetun-transmission" \
-                      -d '{"spec":{"template":{"metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}}}}}'
-                    echo "Restart triggered for gluetun-transmission deployment"
+                  fi
+                  echo "FlareSolverr is NOT responding"
+
+                  # NB: the apiserver pretty-prints JSON for curl User-Agents,
+                  # so tolerate optional whitespace after the colon
+                  START=$(kapi "$APISERVER/api/v1/namespaces/downloads/pods?labelSelector=app%3Dgluetun-transmission" \
+                    | grep -o '"startTime": *"[^"]*"' | head -1 | cut -d'"' -f4)
+                  if [ -n "$START" ]; then
+                    AGE=$(( $(date -u +%s) - $(date -u -D "%Y-%m-%dT%H:%M:%SZ" -d "$START" +%s) ))
+                    if [ "$AGE" -lt 600 ]; then
+                      echo "Pod is only ${AGE}s old - still starting, skipping restart"
+                      exit 0
+                    fi
+                  fi
+
+                  STRIKES=$(kapi "$DEPLOY" | grep -o '"healthcheck.brzrkr.io/strikes": *"[^"]*"' | cut -d'"' -f4)
+                  if [ "$STRIKES" != "1" ]; then
+                    echo "First failure - recording strike, no restart yet"
+                    kapi -X PATCH -H "Content-Type: application/merge-patch+json" "$DEPLOY" \
+                      -d '{"metadata":{"annotations":{"healthcheck.brzrkr.io/strikes":"1"}}}' >/dev/null
                     exit 1
                   fi
+
+                  echo "Second consecutive failure - restarting gluetun-transmission"
+                  kapi -X PATCH -H "Content-Type: application/merge-patch+json" "$DEPLOY" \
+                    -d '{"metadata":{"annotations":{"healthcheck.brzrkr.io/strikes":null}},"spec":{"template":{"metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}}}}}'
+                  exit 1
               resources:
                 requests:
                   memory: "16Mi"
@@ -80,6 +101,9 @@ rules:
     resources: ["deployments"]
     resourceNames: ["gluetun-transmission"]
     verbs: ["get", "patch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

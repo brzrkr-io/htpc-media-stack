@@ -57,9 +57,16 @@ spec:
               mountPath: /config
             - name: server-config
               mountPath: /server-config
+          resources:
+            requests:
+              memory: "16Mi"
+              cpu: "10m"
+            limits:
+              memory: "64Mi"
+              cpu: "200m"
       containers:
         - name: sabnzbd
-          image: lscr.io/linuxserver/sabnzbd:latest@sha256:b67039e6739c2379f2eac8901248cdfcd78536ee34fe6948faea6b8ce8b4805b # {"$imagepolicy": "flux-system:sabnzbd"}
+          image: lscr.io/linuxserver/sabnzbd:latest@sha256:b67039e6739c2379f2eac8901248cdfcd78536ee34fe6948faea6b8ce8b4805b
           imagePullPolicy: IfNotPresent
           env:
             - name: PUID
@@ -77,8 +84,7 @@ spec:
               mountPath: /config
             - name: downloads
               mountPath: /downloads
-            # Incomplete downloads land on the internal NVMe so sustained
-            # random writes never hit the flaky USB drive; only the final
+            # Incomplete downloads use a separate NVMe directory; the final
             # completed file moves to /downloads/complete in one pass.
             - name: incomplete
               mountPath: /incomplete
@@ -89,20 +95,29 @@ spec:
               memory: "1Gi"
               cpu: "500m"
             limits:
-              memory: "6Gi"
-              cpu: "4000m"
+              memory: "3Gi"
+              cpu: "3000m"
+          startupProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /
               port: 8080
-            initialDelaySeconds: 30
             periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /
               port: 8080
-            initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
       volumes:
         - name: config
           hostPath:
@@ -110,16 +125,15 @@ spec:
             type: DirectoryOrCreate
         - name: downloads
           hostPath:
-            path: /data/media/downloads
+            path: /data/media/local-media/downloads
             type: Directory
-        # Real NVMe directory (unlike 'downloads', which symlinks to the USB drive)
         - name: incomplete
           hostPath:
             path: /data/media/downloads-incomplete
             type: Directory
         - name: media-library
           hostPath:
-            path: /data/media/library
+            path: /data/media/local-media/library
             type: Directory
         - name: server-config
           configMap:

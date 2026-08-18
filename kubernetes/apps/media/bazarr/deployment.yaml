@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: bazarr
-          image: lscr.io/linuxserver/bazarr:latest@sha256:5d916d07404296ec35ee726e13e0e558f05952724cf494a7f009d913fb2b12f3 # {"$imagepolicy": "flux-system:bazarr"}
+          image: lscr.io/linuxserver/bazarr:latest@sha256:5d916d07404296ec35ee726e13e0e558f05952724cf494a7f009d913fb2b12f3
           imagePullPolicy: IfNotPresent
           env:
             - name: PUID
@@ -30,7 +30,7 @@ spec:
             - name: PGID
               value: "1000"
             - name: TZ
-              value: "America/New_York"
+              value: "America/Chicago"
           ports:
             - containerPort: 6767
               name: web
@@ -49,18 +49,27 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "1000m"
+          startupProbe:
+            httpGet:
+              path: /
+              port: 6767
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /
               port: 6767
-            initialDelaySeconds: 30
             periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /
               port: 6767
-            initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
       volumes:
         - name: config
           hostPath:
@@ -68,9 +77,9 @@ spec:
             type: DirectoryOrCreate
         - name: tv
           hostPath:
-            path: /data/media/library/tv
+            path: /data/media/local-media/library/tv
             type: Directory
         - name: movies
           hostPath:
-            path: /data/media/library/movies
+            path: /data/media/local-media/library/movies
             type: Directory

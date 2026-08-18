@@ -23,11 +23,11 @@ spec:
     spec:
       containers:
         - name: jellyseerr
-          image: fallenbagel/jellyseerr:latest@sha256:4538137bc5af902dece165f2bf73776d9cf4eafb6dd714670724af8f3eb77764 # {"$imagepolicy": "flux-system:jellyseerr"}
+          image: fallenbagel/jellyseerr:latest@sha256:4538137bc5af902dece165f2bf73776d9cf4eafb6dd714670724af8f3eb77764
           imagePullPolicy: IfNotPresent
           env:
             - name: TZ
-              value: "America/New_York"
+              value: "America/Chicago"
             - name: LOG_LEVEL
               value: "info"
           ports:

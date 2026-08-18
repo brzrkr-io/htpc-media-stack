@@ -29,7 +29,7 @@ spec:
           - 991  # render -> /dev/dri/renderD128 (AMD Radeon 680M, VA-API)
       containers:
         - name: jellyfin
-          image: lscr.io/linuxserver/jellyfin:latest@sha256:a569ae0bfbd67ca404ae51f54cead7a2522d270179f57b3d12cf80ebff5d683b # {"$imagepolicy": "flux-system:jellyfin"}
+          image: lscr.io/linuxserver/jellyfin:latest@sha256:a569ae0bfbd67ca404ae51f54cead7a2522d270179f57b3d12cf80ebff5d683b
           imagePullPolicy: IfNotPresent
           env:
             - name: PUID
@@ -42,15 +42,6 @@ spec:
             - containerPort: 8096
               name: web
               protocol: TCP
-            - containerPort: 8920
-              name: web-https
-              protocol: TCP
-            - containerPort: 7359
-              name: discovery
-              protocol: UDP
-            - containerPort: 1900
-              name: dlna
-              protocol: UDP
           volumeMounts:
             - name: config
               mountPath: /config
@@ -62,13 +53,15 @@ spec:
               readOnly: true
             - name: dri
               mountPath: /dev/dri
+          # Capped so Jellyfin + SABnzbd + FileFlows can never exhaust the
+          # 18GB node together (the old 8Gi/6Gi/4Gi limits summed past RAM).
           resources:
             requests:
               memory: "1Gi"
               cpu: "500m"
             limits:
-              memory: "8Gi"
-              cpu: "8000m"
+              memory: "4Gi"
+              cpu: "4000m"
           # Startup probe gives Jellyfin up to 5 min to come up before the
           # liveness probe can kill it — prevents boot-time restart loops.
           startupProbe:
@@ -100,11 +93,11 @@ spec:
             type: DirectoryOrCreate
         - name: movies
           hostPath:
-            path: /data/media/library/movies
+            path: /data/media/local-media/library/movies
             type: Directory
         - name: tv
           hostPath:
-            path: /data/media/library/tv
+            path: /data/media/local-media/library/tv
             type: Directory
         - name: dri
           hostPath:

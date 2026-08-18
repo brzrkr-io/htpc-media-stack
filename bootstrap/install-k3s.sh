@@ -6,13 +6,11 @@ set -euo pipefail
 
 echo "=== Installing k3s ==="
 
-# Install k3s with:
-# --disable servicelb: We'll use Traefik's built-in load balancer
-# --disable traefik: We'll install Traefik separately for more control (optional)
-# For now, keep Traefik enabled as it comes configured
+# Matches the live install on gort: k3s bundled traefik + servicelb serve all
+# Ingresses; svclb publishes 80/443 on the node IP, which is what the host
+# cloudflared tunnel points at. Do NOT add --disable servicelb/traefik.
 
 curl -sfL https://get.k3s.io | sh -s - \
-    --disable servicelb \
     --write-kubeconfig-mode 644
 
 echo "=== Waiting for k3s to be ready ==="

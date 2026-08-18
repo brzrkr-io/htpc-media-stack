@@ -1,100 +1,60 @@
 # HTPC Media Stack - Project Context
 
-## Overview
-Kubernetes (k3s) based media stack with Flux CD for GitOps deployment.
+Single-node k3s + Flux GitOps on host `gort` (Beelink, AMD 680M iGPU, 18GB RAM,
+Ubuntu). See README.md for the app list and storage layout.
 
-## Critical: 8TB USB Drive Stability Issue
-The SanDisk Extreme 8TB USB drive (Vendor: 0781, Product: 55dd) has UAS driver issues causing disconnections.
+## Ground rules
 
-### Fixes Applied (NEED REBOOT TO TAKE EFFECT):
-1. `/etc/modprobe.d/sandisk-disable-uas.conf` - Disables UAS for this device
-2. `/etc/default/grub.d/sandisk-uas.cfg` - Boot parameter: `usb-storage.quirks=0781:55dd:u`
-3. `/etc/udev/rules.d/50-sandisk-no-autosuspend.rules` - Disables USB autosuspend
-4. GRUB updated with `sudo update-grub`
+- GitOps: change manifests here, commit, push, `flux reconcile ks flux-system
+  --with-source`. Flux prunes anything removed from git.
+- kubectl/flux/k9s are in `~/.nix-profile/bin` (on PATH); kubeconfig at
+  `~/.kube/config`. No sudo needed for cluster work.
+- All images digest-pinned + `IfNotPresent`. Update = bump digest in git.
+- Ingress is k3s's bundled Traefik in kube-system (+svclb on node :80/:443);
+  the cloudflared tunnel (host systemd service) targets it. There is no
+  Traefik in this repo — don't add one, don't disable the bundled one.
 
-**IMPORTANT: System needs a reboot to fully apply the UAS disable fix!**
+## Stability guardrails (2026-08-18, don't undo)
 
-## Storage Layout
-- **NVMe (reliable)**: `/data/media/config/` - All app configs stored here
-- **8TB USB**: `/mnt/media-storage/` - Media files and downloads only
-  - `/mnt/media-storage/library/movies`
-  - `/mnt/media-storage/library/tv`
-  - `/mnt/media-storage/downloads/complete/tv-sonarr`
-  - `/mnt/media-storage/downloads/complete/movies-radarr`
-  - `/mnt/media-storage/downloads/incomplete`
+- **panic-guard.service** re-zeroes `kernel.panic_on_oops`/`kernel.panic`
+  every 2s — kubelet re-arms them on every k3s start; without the guard, any
+  kernel oops instantly reboots the box with no trace.
+- **Kernel pinned to 6.17.0-40** (GRUB saved default + apt-mark hold).
+  6.17.0-41 crash-rebooted within ~2 min of k3s starting pods (9 crashes,
+  Jul 23 + Aug 18). Test newer kernels with `grub-reboot` one-shot boots only.
+- Memory limits: Jellyfin 4Gi, SABnzbd 3Gi, FileFlows 3Gi — sized to coexist.
+  The old 8/6/4Gi limits summed past physical RAM and OOM-thrashed the node.
+- Slow-starter probes: the *arr apps/SAB/FileFlows have startupProbes and 10s
+  probe timeouts. Don't tighten them; 1s-timeout probes caused restart storms
+  after every unclean reboot.
+- The flaresolverr-healthcheck CronJob has hysteresis (10-min pod age gate +
+  2 strikes) — it used to bounce the whole VPN pod during every boot.
 
-## fstab Entry
-```
-UUID=83f6071d-e7b6-46b4-9427-f2172981341f /mnt/media-storage ext4 defaults,nofail,x-systemd.device-timeout=10 0 2
-```
+## Storage facts
 
-## API Keys (as of Jan 7, 2026)
-- Prowlarr: b19d0bd1806b45eab740ba5829c119e0
-- Sonarr: 90a00b9e090b4f0f803fd3fb1298faa0
-- Radarr: 6a16b3b4b8da4dcaa522d49b27fd2f16
-- SABnzbd: 6ae647c8f6554f33ba2ceae7ff075b27
-- Bazarr: 4f9141b6d4ff051d8186a3d4b4aee56b
+- Everything on NVMe under `/data/media/local-media/` (concrete paths in
+  manifests; `/data/media/{downloads,library}` are symlinks kept for humans).
+- SABnzbd incomplete spool: `/data/media/downloads-incomplete` (mounted at
+  `/incomplete`).
+- Backups: `/data/backups/configs`, daily CronJob, keeps 7, excludes
+  regenerable caches (jellyfin metadata, MediaCover, logs).
+- SanDisk 8TB USB (0781:55dd, fw 0130): UAS-drop history under sustained
+  writes; `usb-storage.quirks=0781:55dd:u` is on the kernel cmdline. Its old
+  fstab entry is commented out — reintroduce deliberately if the drive
+  returns; nothing in the stack depends on it.
 
-## Service Cluster IPs (for API calls)
-- Prowlarr: 10.43.146.194:9696
-- Sonarr: 10.43.131.246:8989
-- Radarr: 10.43.39.55:7878
-- SABnzbd: 10.43.142.100:8080
-- Jellyfin: 10.43.48.23:8096
-- FlareSolverr: 10.43.121.210:8191
-- Transmission: 10.43.177.174:9091
+## Gotchas that already bit us
 
-## Access URLs (via Cloudflare Tunnel)
-- http://sonarr.brzrkr.io
-- http://radarr.brzrkr.io
-- http://prowlarr.brzrkr.io
-- http://jellyfin.brzrkr.io
-- http://request.brzrkr.io (Jellyseerr)
-- http://sabnzbd.brzrkr.io
-- http://transmission.brzrkr.io
+- Removing a Traefik middleware/namespace that Ingress annotations reference
+  404s EVERY host (crowdsec incident). Check annotation refs before deleting.
+- `media/flaresolverr` ExternalName service is referenced by Prowlarr's
+  database config — deleting it silently breaks CF-solved indexers.
+- Secrets (ProtonVPN, Newshosting, API keys) are plaintext in git history —
+  treat the repo as sensitive; SOPS migration is a wanted follow-up.
+- User prefers usenet (SABnzbd+NZBgeek); torrents are secondary. FlareSolverr
+  can't solve 1337x/eztvx (those indexers stay disabled).
 
-## Usenet Server
-- Host: news.newshosting.com
-- Port: 563 (SSL)
-- 30 connections configured
+## API keys / service IPs
 
-## Indexers Configured in Prowlarr
-- NZBgeek (Usenet)
-- 1337x, EZTV, KickassTorrents, LimeTorrents, The Pirate Bay, YTS (Torrents)
-
-## SABnzbd Categories
-- `tv` -> `/downloads/complete/tv-sonarr`
-- `movies` -> `/downloads/complete/movies-radarr`
-
-## Common Issues & Fixes
-
-### Drive Disconnects
-If drive disconnects (I/O errors), the device name changes (sdb -> sdc -> sdd etc):
-```bash
-# Check current device
-lsblk | grep "7.3T"
-
-# Unmount stale, remount new
-sudo umount -l /mnt/media-storage
-sudo mount /dev/sdX /mnt/media-storage  # Replace X with current letter
-
-# Restart pods
-k3s kubectl rollout restart deployment -n media
-k3s kubectl rollout restart deployment -n downloads
-```
-
-### Check All Services Health
-```bash
-curl -s "http://10.43.146.194:9696/api/v1/health?apikey=b19d0bd1806b45eab740ba5829c119e0" | jq
-curl -s "http://10.43.131.246:8989/api/v3/health?apikey=90a00b9e090b4f0f803fd3fb1298faa0" | jq
-curl -s "http://10.43.39.55:7878/api/v3/health?apikey=6a16b3b4b8da4dcaa522d49b27fd2f16" | jq
-```
-
-### Trigger Missing Content Search
-```bash
-# Sonarr - search missing episodes
-curl -X POST "http://10.43.131.246:8989/api/v3/command" -H "X-Api-Key: 90a00b9e090b4f0f803fd3fb1298faa0" -H "Content-Type: application/json" -d '{"name": "MissingEpisodeSearch"}'
-
-# Radarr - search missing movies
-curl -X POST "http://10.43.39.55:7878/api/v3/command" -H "X-Api-Key: 6a16b3b4b8da4dcaa522d49b27fd2f16" -H "Content-Type: application/json" -d '{"name": "MissingMoviesSearch"}'
-```
+Don't hardcode them here. Keys: `/data/media/config/<app>/config.xml`.
+IPs: `kubectl get svc -A`.

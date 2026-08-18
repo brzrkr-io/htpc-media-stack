@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: sonarr
-          image: lscr.io/linuxserver/sonarr:latest@sha256:4b025354d338999e03bf6dbdadcdde94815d39d4a5aba5de3cdc86a56d7d6c51 # {"$imagepolicy": "flux-system:sonarr"}
+          image: lscr.io/linuxserver/sonarr:latest@sha256:4b025354d338999e03bf6dbdadcdde94815d39d4a5aba5de3cdc86a56d7d6c51
           imagePullPolicy: IfNotPresent
           env:
             - name: PUID
@@ -30,7 +30,7 @@ spec:
             - name: PGID
               value: "1000"
             - name: TZ
-              value: "America/New_York"
+              value: "America/Chicago"
           ports:
             - containerPort: 8989
               name: web
@@ -49,18 +49,27 @@ spec:
             limits:
               memory: "2Gi"
               cpu: "2000m"
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: 8989
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /ping
               port: 8989
-            initialDelaySeconds: 30
             periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /ping
               port: 8989
-            initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
 
       volumes:
         - name: config
@@ -69,9 +78,9 @@ spec:
             type: DirectoryOrCreate
         - name: downloads
           hostPath:
-            path: /data/media/downloads
+            path: /data/media/local-media/downloads
             type: Directory
         - name: tv
           hostPath:
-            path: /data/media/library/tv
+            path: /data/media/local-media/library/tv
             type: Directory

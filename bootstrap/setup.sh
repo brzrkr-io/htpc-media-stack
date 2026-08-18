@@ -41,11 +41,23 @@ echo "  - flux: $(flux --version 2>/dev/null || echo 'available')"
 echo "  - helm: $(helm version --short 2>/dev/null || echo 'available')"
 
 # Step 3: Create data directories
+# Media lives on the internal NVMe under /data/media/local-media (the old
+# /data/media/{downloads,library} paths are convenience symlinks into it).
 echo ""
 echo "[3/4] Creating data directories..."
-sudo mkdir -p /data/media/{config,downloads,library/{movies,tv}}
-sudo chown -R 1000:1000 /data/media
+sudo mkdir -p /data/media/config \
+    /data/media/local-media/downloads/{complete,incomplete,watch} \
+    /data/media/local-media/library/{movies,tv} \
+    /data/media/downloads-incomplete /data/backups/configs
+sudo ln -sfn local-media/downloads /data/media/downloads
+sudo ln -sfn local-media/library /data/media/library
+sudo chown 1000:1000 /data/media /data/media/config /data/backups /data/backups/configs \
+    /data/media/downloads-incomplete
+sudo chown -R 1000:1000 /data/media/local-media
 echo "✓ Created /data/media structure"
+echo ""
+echo "[3b/4] Host hardening (panic-guard, kernel pin, service cleanup)..."
+echo "  Run: sudo bash $SCRIPT_DIR/host/harden-host.sh"
 
 # Step 4: Check k3s
 echo ""

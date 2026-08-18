@@ -5,8 +5,8 @@ metadata:
   name: config-backup
   namespace: backup
 spec:
-  # 3 AM Eastern = 8 AM UTC (EST is UTC-5)
-  schedule: "0 8 * * *"
+  schedule: "0 3 * * *"
+  timeZone: America/Chicago
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 1
   concurrencyPolicy: Forbid
@@ -35,9 +35,19 @@ spec:
                   # Ensure backup destination directory exists
                   mkdir -p "${BACKUP_DIR}"
 
-                  # Create timestamped tar.gz of all configs
+                  # Create timestamped tar.gz of all configs.
+                  # Exclude regenerable caches (Jellyfin metadata/images, *arr
+                  # MediaCover, logs) - they were most of the old 1GB tarballs.
                   echo "Creating backup: ${BACKUP_FILE}"
-                  tar czf "${BACKUP_FILE}" -C "${SOURCE_DIR}" .
+                  tar czf "${BACKUP_FILE}" -C "${SOURCE_DIR}" \
+                    --exclude='./jellyfin/cache' \
+                    --exclude='./jellyfin/data/metadata' \
+                    --exclude='./jellyfin/data/transcodes' \
+                    --exclude='./jellyfin/log' \
+                    --exclude='./*/MediaCover' \
+                    --exclude='./*/logs' \
+                    --exclude='./*/Logs' \
+                    .
 
                   echo "Backup created: $(du -h "${BACKUP_FILE}" | cut -f1)"
 
@@ -49,6 +59,13 @@ spec:
                   done
 
                   echo "Backup completed successfully at $(date)"
+              resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "500m"
               volumeMounts:
                 - name: config-source
                   mountPath: /config-source
@@ -60,7 +77,10 @@ spec:
               hostPath:
                 path: /data/media/config
                 type: Directory
+            # NOTE: the 8TB USB drive is gone; backups live on the NVMe under
+            # /data/backups. Same-disk copies protect against app corruption /
+            # bad upgrades, not disk failure - take an occasional off-box copy.
             - name: backup-dest
               hostPath:
-                path: /mnt/media-storage/backups/configs
+                path: /data/backups/configs
                 type: DirectoryOrCreate

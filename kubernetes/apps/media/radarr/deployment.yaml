@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: radarr
-          image: lscr.io/linuxserver/radarr:latest@sha256:2b2c1c05eb3f648d2c80dfab9486147dd7bb0ad4d77fa972fc1c5de8f1da3738 # {"$imagepolicy": "flux-system:radarr"}
+          image: lscr.io/linuxserver/radarr:latest@sha256:2b2c1c05eb3f648d2c80dfab9486147dd7bb0ad4d77fa972fc1c5de8f1da3738
           imagePullPolicy: IfNotPresent
           env:
             - name: PUID
@@ -30,7 +30,7 @@ spec:
             - name: PGID
               value: "1000"
             - name: TZ
-              value: "America/New_York"
+              value: "America/Chicago"
           ports:
             - containerPort: 7878
               name: web
@@ -49,18 +49,27 @@ spec:
             limits:
               memory: "1Gi"
               cpu: "1000m"
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: 7878
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /ping
               port: 7878
-            initialDelaySeconds: 30
             periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /ping
               port: 7878
-            initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
 
       volumes:
         - name: config
@@ -69,9 +78,9 @@ spec:
             type: DirectoryOrCreate
         - name: downloads
           hostPath:
-            path: /data/media/downloads
+            path: /data/media/local-media/downloads
             type: Directory
         - name: movies
           hostPath:
-            path: /data/media/library/movies
+            path: /data/media/local-media/library/movies
             type: Directory

@@ -28,12 +28,15 @@ spec:
           - 991  # render -> /dev/dri/renderD128 (AMD Radeon 680M, VA-API)
       containers:
         - name: fileflows
-          image: revenz/fileflows:latest@sha256:11780594eaa3e655b65572918cf16bff007060d16aa23d71fe78833871887290 # {"$imagepolicy": "flux-system:fileflows"}
+          image: revenz/fileflows:latest@sha256:11780594eaa3e655b65572918cf16bff007060d16aa23d71fe78833871887290
           imagePullPolicy: IfNotPresent
-          command: ["bash", "-c", "apt-get update -qq && apt-get install -y -qq ffmpeg >/dev/null 2>&1 && ln -sf /usr/bin/ffmpeg /usr/local/bin/ffmpeg && ln -sf /usr/bin/ffprobe /usr/local/bin/ffprobe && exec /app/docker-entrypoint.sh"]
+          # ffmpeg install must NOT be fatal: at boot the network is often not
+          # ready yet, and the old '&&' chain crash-looped the container with a
+          # fresh ~200MB apt download on every retry.
+          command: ["bash", "-c", "if apt-get update -qq && apt-get install -y -qq ffmpeg >/dev/null 2>&1; then ln -sf /usr/bin/ffmpeg /usr/local/bin/ffmpeg; ln -sf /usr/bin/ffprobe /usr/local/bin/ffprobe; else echo 'WARN: ffmpeg apt install failed; using image-bundled ffmpeg'; fi; exec /app/docker-entrypoint.sh"]
           env:
             - name: TZ
-              value: "America/New_York"
+              value: "America/Chicago"
             - name: PUID
               value: "1000"
             - name: PGID
@@ -60,20 +63,31 @@ spec:
               memory: "512Mi"
               cpu: "250m"
             limits:
-              memory: "4Gi"
-              cpu: "6000m"
+              memory: "3Gi"
+              cpu: "3000m"
+          # Startup probe covers the apt-get ffmpeg install + app boot (up to
+          # 7 min) so the liveness probe can never kill it mid-install.
+          startupProbe:
+            httpGet:
+              path: /
+              port: 5000
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 42
           livenessProbe:
             httpGet:
               path: /
               port: 5000
-            initialDelaySeconds: 120
             periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /
               port: 5000
-            initialDelaySeconds: 90
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
 
       volumes:
         - name: config
@@ -90,11 +104,11 @@ spec:
             type: DirectoryOrCreate
         - name: movies
           hostPath:
-            path: /data/media/library/movies
+            path: /data/media/local-media/library/movies
             type: Directory
         - name: tv
           hostPath:
-            path: /data/media/library/tv
+            path: /data/media/local-media/library/tv
             type: Directory
         - name: dri
           hostPath:
