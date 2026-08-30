@@ -52,7 +52,7 @@ services:
 
   unpackerr:
     <<: *common
-    image: golift/unpackerr:latest@sha256:0337b585f4c8a71251cde32ea2461650f68f26be35ea2303be94d71a91ad62c0
+    image: golift/unpackerr:latest@sha256:4ec141eeb0cb2f971d7c92f21cc40b0d2d50d7920eb7a0557443cca52270c0b0
     environment:
       <<: *env
       UN_INTERVAL: 2m
