@@ -21,3 +21,4 @@ Thumbs.db
 
 # k3s local files (if any)
 *.kubeconfig
+compose/.env
