@@ -166,7 +166,7 @@ services:
 
   jellyseerr:
     <<: *common
-    image: fallenbagel/jellyseerr:latest@sha256:4538137bc5af902dece165f2bf73776d9cf4eafb6dd714670724af8f3eb77764
+    image: ghcr.io/seerr-team/seerr:latest@sha256:f4768de5f616248d723e05891f3345a1402123775d03bf0890dbfedc0831bda1
     environment: { TZ: America/Chicago }
     volumes: ["/data/media/config/jellyseerr:/app/config"]
     ports: ["5055:5055"]
