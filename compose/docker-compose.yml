@@ -180,6 +180,20 @@ services:
       traefik.http.routers.jellyseerr.rule: Host(`request.brzrkr.io`)
       traefik.http.services.jellyseerr.loadbalancer.server.port: "5055"
 
+  # ---------- live tv: Threadfin presents any M3U/tuner to Jellyfin as an HDHomeRun ----------
+  threadfin:
+    <<: *common
+    image: fyb3roptik/threadfin:latest@sha256:863fb0c2945617b4aa48b79eaa655954df72d68fbee6e49a1465934ceb3f057e
+    volumes:
+      - /data/media/config/threadfin:/home/threadfin/conf
+    ports: ["34400:34400"]
+    networks: [media]
+    mem_limit: 512m
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.threadfin.rule: Host(`tv.brzrkr.io`)
+      traefik.http.services.threadfin.loadbalancer.server.port: "34400"
+
   # ================= EXTRAS (docker compose --profile extra up -d) =================
   gluetun:
     <<: *common
