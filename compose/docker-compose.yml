@@ -194,6 +194,16 @@ services:
       traefik.http.routers.threadfin.rule: Host(`tv.brzrkr.io`)
       traefik.http.services.threadfin.loadbalancer.server.port: "34400"
 
+  # Free ad-supported live TV (Pluto TV) -> M3U/EPG for Jellyfin
+  pluto:
+    <<: *common
+    image: ghcr.io/jgomez177/pluto-for-channels:latest@sha256:54a42d25cea4660be0582f746e1871c68d8a743e6fdd27c799e00274f228fd77
+    environment:
+      PLUTO_CODE: us_east
+    ports: ["7777:7777"]
+    networks: [media]
+    mem_limit: 512m
+
   # ================= EXTRAS (docker compose --profile extra up -d) =================
   gluetun:
     <<: *common
